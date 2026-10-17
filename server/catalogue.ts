@@ -1,0 +1,37 @@
+import type { CatalogueItem, Interest, Format, Diet } from '../shared/model';
+
+// These are deliberately generic, illustrative activities, not live venue listings.
+const activity = (id: string, name: string, description: string, tags: Interest[], duration: number, perPerson: number, format: Format = 'outing', extra: Partial<CatalogueItem> = {}): CatalogueItem => ({
+  id, kind: 'activity', name, description, tags, duration, perPerson, format,
+  city: 'Bengaluru', minPeople: 2, maxPeople: 24, fixedCost: 0, stepFree: 'unknown', diets: [],
+  indoor: true, source: 'sample', sourceUrl: '', details: 'Illustrative activity and estimated pricing. Choose a provider and confirm the details before booking.', ...extra,
+});
+const meal = (id: string, name: string, description: string, perPerson: number, dietOptions: Diet[], format: Format = 'outing'): CatalogueItem => ({
+  ...activity(id, name, description, ['food', 'conversation'], 60, perPerson, format), kind: 'meal', diets: dietOptions,
+});
+
+export function sampleCatalogue(): CatalogueItem[] {
+  return [
+    activity('pottery', 'Clay, conversation & a little mess', 'A guided pottery session with a piece for everyone to take home.', ['creative', 'conversation'], 90, 650),
+    activity('printmaking', 'Make your mark', 'An easygoing printmaking workshop. No drawing skills required.', ['creative', 'culture'], 90, 550),
+    activity('board-games', 'Around the table', 'Small-group board games with enough variety for newcomers and regulars.', ['games', 'conversation'], 90, 250),
+    activity('gallery', 'An afternoon of looking', 'A small gallery visit followed by time to talk about what caught your eye.', ['culture', 'creative'], 75, 200),
+    activity('escape', 'The great team escape', 'A cooperative puzzle room with groups working together against the clock.', ['games'], 60, 750, 'outing', { maxPeople: 12 }),
+    activity('bowling', 'A friendly lane rivalry', 'A casual bowling session, with time between turns to catch up.', ['games', 'movement'], 90, 500),
+    activity('garden', 'Take the scenic route', 'A relaxed garden walk with conversation stops and a photo challenge.', ['outdoors', 'conversation'], 75, 100, 'outing', { indoor: false, stepFree: 'unknown' }),
+    activity('climbing', 'A different kind of challenge', 'An introductory climbing session led by an instructor.', ['movement'], 90, 700, 'outing', { stepFree: 'no', maxPeople: 18 }),
+    activity('cooking', 'Something good together', 'Cook a small dish together in pairs with a workshop facilitator.', ['creative', 'food'], 90, 800),
+    activity('percussion', 'Find a shared rhythm', 'A beginner-friendly group percussion workshop.', ['music', 'creative'], 75, 500),
+    activity('office-collage', 'The team collage studio', 'Turn a meeting room into a shared collage and postcard-making table.', ['creative', 'conversation'], 75, 200, 'office', { fixedCost: 500 }),
+    activity('office-trivia', 'The not-so-serious quiz', 'Mixed-topic trivia with rotating teams and a participant-contributed round.', ['games', 'culture'], 60, 50, 'office', { fixedCost: 500 }),
+    activity('office-games', 'A good old games afternoon', 'A few tables, a few games, and space for people to join at their own pace.', ['games', 'conversation'], 75, 100, 'office'),
+    activity('office-music', 'The listening club', 'Bring one song and a short story behind it; leave with a shared listening list.', ['music', 'culture', 'conversation'], 60, 0, 'office'),
+    activity('office-show', 'Show, tell & try', 'Colleagues share a hobby and lead a short hands-on activity.', ['creative', 'culture', 'conversation'], 90, 100, 'office'),
+    activity('office-plants', 'A little green for your desk', 'A small potting workshop with take-home plants and care cards.', ['creative', 'outdoors'], 60, 300, 'office'),
+    meal('meal-thali', 'A long-table vegetarian lunch', 'A relaxed sit-down meal with vegetarian choices for the whole table.', 400, ['vegetarian']),
+    meal('meal-cafe', 'Cafe plates & conversation', 'A casual cafe meal with a mix of lighter plates.', 550, ['vegetarian', 'vegan']),
+    meal('meal-buffet', 'A shared neighbourhood table', 'A group meal with a broad menu; confirm individual requirements with the venue.', 650, ['vegetarian', 'vegan', 'gluten-free', 'halal']),
+    meal('office-lunch', 'Lunch comes to us', 'A catered office lunch with labeled individual portions.', 350, ['vegetarian', 'vegan', 'gluten-free', 'halal'], 'office'),
+    meal('office-snacks', 'Tea, snacks & a proper catch-up', 'A generous office snack spread and hot drinks.', 200, ['vegetarian', 'vegan'], 'office'),
+  ];
+}
