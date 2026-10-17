@@ -3,6 +3,7 @@ type: Reference
 title: Product scope
 description: A complete recurring team-event planning loop that works without Qloo.
 timestamp: 2026-10-17
+last_verified: 2026-10-17
 ---
 
 # Product scope

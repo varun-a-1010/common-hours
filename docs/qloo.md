@@ -3,6 +3,7 @@ type: Reference
 title: Qloo integration boundary
 description: Explicit-preference baseline now; live cultural recommendations remain pending API access.
 timestamp: 2026-10-17
+last_verified: 2026-10-17
 ---
 
 # Qloo integration boundary
@@ -13,6 +14,7 @@ The functioning planner uses the curated catalogue and direct preferences.
 Optional cultural favourites are collected but do NOT currently influence ranking.
 
 When access arrives:
+
 1. Resolve user-supplied cultural favourites through real entity search; confirm
    ambiguous matches and retain unresolved text rather than inventing entity IDs.
 2. Test place/category coverage for the chosen city and available account access.
@@ -26,6 +28,7 @@ When access arrives:
    baseline. Do not claim improvement by grading both versions with Qloo scores.
 
 References checked during scoping:
+
 - https://github.com/qloo/docs-public/blob/main/docs/entities.md
 - https://github.com/qloo/docs-public/blob/main/reference/insights-api-deep-dive.md
 - https://github.com/qloo/docs-public/blob/main/docs/interpreting-affinity-scores.md

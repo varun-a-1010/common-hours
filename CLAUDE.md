@@ -14,6 +14,7 @@ TripRescue or any other submitted Devpost artifact while working here.
 - See `docs/index.md` for scope, architecture, verification and Qloo integration notes.
 
 ## Docs
+
 Agent docs live in `docs/` as an OKF-flavored bundle. At session start, check
 `docs/inbox/` for open requests. Update affected Reference docs and `docs/log.md`
 with implementation changes. Stamp `last_verified` only after checking the code.

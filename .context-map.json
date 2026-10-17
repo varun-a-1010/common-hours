@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "entrypoints": ["src/main.tsx", "server/index.ts"],
+  "files": {
+    "src/App.tsx": {
+      "purpose": "Organizer workspace, scoped public pages and form orchestration",
+      "depends_on": [
+        "src/api.ts",
+        "src/views.tsx",
+        "src/forms.tsx",
+        "src/components.tsx",
+        "shared/model.ts"
+      ]
+    },
+    "src/views.tsx": {
+      "purpose": "Event brief, people, plan comparison, agenda, history, library and feedback",
+      "depends_on": ["src/components.tsx", "src/forms.tsx", "shared/model.ts"]
+    },
+    "src/forms.tsx": {
+      "purpose": "Accessible event, participant, catalogue and feedback forms",
+      "depends_on": ["src/components.tsx", "shared/model.ts"]
+    },
+    "src/styles.css": {
+      "purpose": "Responsive Common Hours design and locally hosted fonts",
+      "depends_on": []
+    },
+    "server/app.ts": {
+      "purpose": "Validated API routes, capability access, version checks and safe public projections",
+      "depends_on": [
+        "server/store.ts",
+        "server/planner.ts",
+        "server/data.ts",
+        "shared/validation.ts"
+      ]
+    },
+    "server/planner.ts": {
+      "purpose": "Constraint-first selection, history, scheduling, costs and locked replanning",
+      "depends_on": ["shared/model.ts"]
+    },
+    "server/store.ts": {
+      "purpose": "Private atomic file storage and dedicated Deltabase Postgres adapter",
+      "depends_on": ["shared/model.ts"]
+    },
+    "server/data.ts": {
+      "purpose": "Workspace initialization, synthetic demo data and public/owner projections",
+      "depends_on": ["server/catalogue.ts", "server/planner.ts", "shared/model.ts"]
+    },
+    "server/taste.ts": {
+      "purpose": "Disabled-by-design Qloo provider boundary pending live validation",
+      "depends_on": ["shared/model.ts"]
+    }
+  }
+}

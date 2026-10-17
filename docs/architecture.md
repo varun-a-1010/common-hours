@@ -3,6 +3,7 @@ type: Reference
 title: Architecture
 description: Independent React and Fastify app with a deterministic planner and scoped share links.
 timestamp: 2026-10-17
+last_verified: 2026-10-17
 ---
 
 # Architecture
@@ -32,11 +33,16 @@ This is a small-team MVP authentication model, not organization SSO.
 
 Event invitations and read-only agenda links have separate random capabilities.
 Participants get an HTTP-only member cookie and may access only their own response.
+Organizer-supplied personal invitations let existing/manual/copied participants
+review their own response on another device; these capabilities never expose
+another participant. Invitation rotation also revokes these old personal URLs.
 Public projections omit names, notes, diets, budgets, all tokens and internal data.
 Responses are non-cacheable; referrers are suppressed; mutating origins are checked;
 inputs are bounded and validated. Rate limiting is process-local. Set APP_ORIGIN
 to the exact HTTPS origin in deployment so cookies are Secure and origin checks
 work behind a reverse proxy. No externally fetched URLs or automatic outreach.
+Production responses use a restrictive same-origin content security policy. Fonts
+are bundled locally. The API loads optional `.env` values at process startup.
 
 The sample catalogue is illustrative; capacity/price/diet/access checks must be
 confirmed before ready. Feedback opens only on completed events. Completed events
