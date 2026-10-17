@@ -12,7 +12,7 @@ export interface Brief {
 }
 export interface Member {
   id: string; name: string; likes: Interest[]; avoids: Interest[]; diets: Diet[];
-  stepFree: boolean; notes: string; favourites: string; secretHash?: string;
+  stepFree: boolean; notes: string; favourites: string; secretHash?: string; claimToken?: string;
 }
 export interface CatalogueItem {
   id: string; kind: 'activity' | 'meal'; name: string; description: string;
@@ -40,9 +40,10 @@ export interface EventRecord {
   selected: Plan | null; checks: Check[]; feedback: Feedback[]; actualSpend: number | null;
   reflection: string; excludedItemIds: string[]; inviteToken: string; shareToken: string;
   createdAt: string; completedAt: string | null; messages: string[];
+  needsReplan?: boolean;
 }
 export interface Workspace {
-  id: string; name: string; ownerHash: string; version: number;
+  id: string; name: string; ownerHash: string; version: number; demo: boolean;
   catalogue: CatalogueItem[]; events: EventRecord[]; createdAt: string;
 }
 export type OwnerWorkspace = Omit<Workspace, 'ownerHash'>;

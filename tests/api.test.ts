@@ -53,6 +53,24 @@ describe('access and participant privacy', () => {
     const stale = await app.inject({ method: 'POST', url: '/api/events', headers: { cookie: ownerCookie }, payload: { version: old, brief: defaultBrief() } });
     expect(stale.statusCode).toBe(409);
   });
+  it('lets an existing participant review a personal invitation without exposing other responses', async () => {
+    await create(true); const e = workspace.events[0], member = e.members[0];
+    const base = `/api/join/${workspace.id}/${e.id}/${e.inviteToken}`;
+    const url = `${base}?member=${member.id}&claim=${member.claimToken}`;
+    const personal = await app.inject({ url });
+    expect(personal.statusCode).toBe(200); expect(personal.json().member.name).toBe(member.name);
+    expect(personal.json().member.claimToken).toBeUndefined();
+    expect(personal.body).not.toContain(e.members[2].notes);
+    const update = await app.inject({ method: 'POST', url, payload: { member: { ...member, notes: 'Please leave time for a break.' } } });
+    expect(update.statusCode).toBe(200);
+    const own = (await app.inject({ url: base, headers: { cookie: cookieHeader(update) } })).json();
+    expect(own.member.notes).toContain('break');
+    const bad = await app.inject({ url: `${base}?member=${e.members[1].id}&claim=${member.claimToken}` });
+    expect(bad.statusCode).toBe(404);
+    workspace = (await app.inject({ url: '/api/workspace', headers: { cookie: ownerCookie } })).json();
+    await mutate(`/api/events/${e.id}`, { action: 'rotate-links' });
+    expect((await app.inject({ url })).statusCode).toBe(404);
+  });
 });
 
 describe('complete event lifecycle', () => {

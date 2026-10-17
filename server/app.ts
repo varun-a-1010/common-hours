@@ -24,6 +24,7 @@ export async function buildApp(store: Store, options: { staticRoot?: string; ori
   app.addHook('onRequest', async (request, reply) => {
     if (request.url.startsWith('/api')) reply.header('Cache-Control', 'no-store');
     reply.header('Referrer-Policy', 'no-referrer').header('X-Content-Type-Options', 'nosniff').header('X-Frame-Options', 'DENY');
+    if (options.production) reply.header('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");
     const origin = request.headers.origin;
     if (origin && !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
       const allowed = options.origin ?? `${request.protocol}://${request.headers.host}`;
@@ -64,6 +65,15 @@ export async function buildApp(store: Store, options: { staticRoot?: string; ori
     if (!workspace || !event || !same(p.token, purpose === 'invite' ? event.inviteToken : event.shareToken)) return fail(404, 'This link is unavailable. Ask the organizer for a current link.');
     return { workspace, event };
   }
+  function participantAccess(request: FastifyRequest, event: EventRecord) {
+    const query = request.query as Record<string, unknown>;
+    if (query.member !== undefined || query.claim !== undefined) {
+      const member = event.members.find(m => m.id === query.member && typeof query.claim === 'string' && m.claimToken && same(m.claimToken, query.claim));
+      return member ?? fail(404, 'That personal invitation is no longer valid. Ask the organizer for a new link.');
+    }
+    const [id, secret] = (request.cookies[memberCookie(event.id)] ?? '').split('.');
+    return event.members.find(m => m.id === id && m.secretHash && secret && same(m.secretHash, hash(secret)));
+  }
 
   app.get('/api/health', async () => ({ ok: true, taste: tasteProvider.status }));
   app.post('/api/workspaces', { config: { rateLimit: { max: 12, timeWindow: '1 hour' } } }, async (request, reply) => {
@@ -89,7 +99,7 @@ export async function buildApp(store: Store, options: { staticRoot?: string; ori
     const event = newEvent(briefSchema.parse(body.brief));
     if (typeof body.copyFrom === 'string') {
       const source = findEvent(w, body.copyFrom);
-      event.members = source.members.map(({ secretHash: _, ...m }) => ({ ...m, id: randomUUID() }));
+      event.members = source.members.map(({ secretHash: _, ...m }) => ({ ...m, id: randomUUID(), claimToken: token() }));
       if (event.members.length > event.brief.headcount) fail(400, 'The headcount must include everyone being copied.');
     }
     w.events.unshift(event);
@@ -112,7 +122,7 @@ export async function buildApp(store: Store, options: { staticRoot?: string; ori
         const existing = typeof body.memberId === 'string' ? e.members.find(m => m.id === body.memberId) : undefined;
         if (body.memberId && !existing) fail(404, 'Participant not found.');
         if (existing) Object.assign(existing, input);
-        else { if (e.members.length >= e.brief.headcount) fail(400, 'Increase the headcount before adding another participant.'); e.members.push({ ...input, id: randomUUID() }); }
+        else { if (e.members.length >= e.brief.headcount) fail(400, 'Increase the headcount before adding another participant.'); e.members.push({ ...input, id: randomUUID(), claimToken: token() }); }
         invalidate(e); break;
       }
       case 'remove-member': {
@@ -172,34 +182,32 @@ export async function buildApp(store: Store, options: { staticRoot?: string; ori
   app.get('/api/share/:workspace/:event/:token', async request => publicView((await publicAccess(request, 'share')).event));
   app.get('/api/join/:workspace/:event/:token', async request => {
     const { event } = await publicAccess(request, 'invite');
-    const [memberId, secret] = (request.cookies[memberCookie(event.id)] ?? '').split('.');
-    const member = event.members.find(m => m.id === memberId && m.secretHash && secret && same(m.secretHash, hash(secret)));
-    return { event: publicView(event), member: member ? (({ secretHash: _, ...m }) => m)(member) : null, feedback: member ? event.feedback.find(f => f.memberId === member.id) ?? null : null };
+    const member = participantAccess(request, event);
+    return { event: publicView(event), member: member ? (({ secretHash: _, claimToken: __, ...m }) => m)(member) : null, feedback: member ? event.feedback.find(f => f.memberId === member.id) ?? null : null };
   });
   app.post('/api/join/:workspace/:event/:token', { config: { rateLimit: { max: 40, timeWindow: '1 hour' } } }, async (request, reply) => {
     const { workspace, event } = await publicAccess(request, 'invite');
-    const [memberId, existingSecret] = (request.cookies[memberCookie(event.id)] ?? '').split('.');
     const body = z.record(z.string(), z.unknown()).parse(request.body);
     const newSecret = token();
     const { result } = await store.update(workspace.id, w => {
       const current = findEvent(w, event.id);
       if (!same(params(request).token, current.inviteToken)) fail(404, 'This invitation has been replaced.');
-      const member = current.members.find(m => m.id === memberId && m.secretHash && existingSecret && same(m.secretHash, hash(existingSecret)));
+      const member = participantAccess(request, current);
       if (body.action === 'feedback') {
         if (current.status !== 'completed') fail(400, 'Feedback opens after the event.');
         if (!member) fail(403, 'Use the same browser you used to share your preferences, or ask the organizer to record your feedback.');
         const feedback = { ...feedbackSchema.parse(body.feedback), memberId: member.id };
         current.feedback = [...current.feedback.filter(f => f.memberId !== member.id), feedback];
-        return { id: member.id, secret: existingSecret };
+        member.secretHash = hash(newSecret); return { id: member.id, secret: newSecret };
       }
       if (current.status === 'completed') fail(400, 'This event has already finished.');
       const input = memberSchema.parse(body.member);
       if (member) Object.assign(member, input);
       else {
         if (current.members.length >= current.brief.headcount) fail(400, 'This event has all its responses. Contact the organizer to add another person.');
-        const added = { ...input, id: randomUUID(), secretHash: hash(newSecret) }; current.members.push(added); invalidate(current); return { id: added.id, secret: newSecret };
+        const added = { ...input, id: randomUUID(), secretHash: hash(newSecret), claimToken: token() }; current.members.push(added); invalidate(current); return { id: added.id, secret: newSecret };
       }
-      invalidate(current); return { id: member.id, secret: existingSecret };
+      member.secretHash = hash(newSecret); invalidate(current); return { id: member.id, secret: newSecret };
     });
     setMember(reply, event.id, result.id, result.secret); return { ok: true };
   });

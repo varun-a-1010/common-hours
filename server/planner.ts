@@ -2,7 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { minutes, money, type Brief, type CatalogueItem, type Check, type EventRecord, type Member, type Plan, type PlanBlock } from '../shared/model';
 
 export function briefFingerprint(brief: Brief, members: Member[]) {
-  return createHash('sha256').update(JSON.stringify({ brief, members: members.map(({ secretHash: _, ...m }) => m) })).digest('hex');
+  return createHash('sha256').update(JSON.stringify({ brief, members: members.map(({ secretHash: _, claimToken: __, ...m }) => m) })).digest('hex');
 }
 export function recost(plan: Plan): Plan {
   const subtotal = plan.blocks.reduce((sum, b) => sum + (b.quotedCost ?? b.cost), 0);

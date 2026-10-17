@@ -1,7 +1,7 @@
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import type { Brief, EventRecord, OwnerWorkspace, PublicEvent, Workspace } from '../shared/model';
 import { sampleCatalogue } from './catalogue';
-import { buildPlans, makeChecks } from './planner';
+import { briefFingerprint, buildPlans, makeChecks } from './planner';
 
 export const token = () => randomBytes(24).toString('base64url');
 export const hash = (value: string) => createHash('sha256').update(value).digest('hex');
@@ -17,7 +17,7 @@ export function defaultBrief(): Brief {
 }
 export function newWorkspace(name: string, demo: boolean) {
   const secret = token();
-  const workspace: Workspace = { id: randomUUID(), name, ownerHash: hash(secret), version: 0, catalogue: sampleCatalogue(), events: [], createdAt: new Date().toISOString() };
+  const workspace: Workspace = { id: randomUUID(), name, ownerHash: hash(secret), version: 0, demo, catalogue: sampleCatalogue(), events: [], createdAt: new Date().toISOString() };
   if (demo) {
     const event = newEvent({ ...defaultBrief(), title: 'A little out of office', headcount: 6 });
     event.members = [
@@ -28,6 +28,7 @@ export function newWorkspace(name: string, demo: boolean) {
       { id: randomUUID(), name: 'Priya', likes: ['conversation', 'creative'], avoids: [], diets: ['vegetarian'], stepFree: false, notes: '', favourites: '' },
       { id: randomUUID(), name: 'Daniel', likes: ['games', 'creative'], avoids: [], diets: [], stepFree: false, notes: '', favourites: '' },
     ];
+    event.members.forEach(m => { m.claimToken = token(); });
     const previous = newEvent({ ...defaultBrief(), title: 'Last month: games & lunch', date: new Date(Date.now() - 28 * 86400000).toISOString().slice(0, 10), headcount: 6 });
     previous.members = structuredClone(event.members);
     previous.options = buildPlans(previous, workspace.catalogue.filter(i => i.id === 'board-games' || i.kind === 'meal'), []).plans;
@@ -42,7 +43,10 @@ export function newWorkspace(name: string, demo: boolean) {
 }
 export function ownerView(workspace: Workspace): OwnerWorkspace {
   const { ownerHash: _, ...clean } = structuredClone(workspace);
-  clean.events.forEach(e => { e.members = e.members.map(({ secretHash: __, ...m }) => m); });
+  clean.events.forEach(e => {
+    e.members = e.members.map(({ secretHash: __, ...m }) => m);
+    e.needsReplan = !!e.selected && (e.selected.fingerprint !== briefFingerprint(e.brief, e.members) || e.selected.blocks.some(b => e.excludedItemIds.includes(b.itemId)));
+  });
   return clean;
 }
 export function publicView(event: EventRecord): PublicEvent {
