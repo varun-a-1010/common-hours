@@ -11,7 +11,7 @@ last_verified: 2026-10-20
 Verified locally on Node 24.15.0 on 2026-10-20:
 
 - Strict TypeScript, including unused imports and parameters, passes.
-- 29 default Vitest tests pass. The default run explicitly skips two Postgres
+- 32 default Vitest tests pass. The default run explicitly skips two Postgres
   tests; `npm run test:postgres` runs those separately and both passed against a
   fresh, private Unix-socket-only PostgreSQL instance on 2026-10-17. That instance
   was removed; the unchanged database adapter was not retested on 2026-10-20.
@@ -27,8 +27,17 @@ and quote preservation, impossible plans, missing participant responses, stale
 plans, changes invalidating prices/checks, organizer version conflicts, public
 projection privacy, scoped personal invitations, link revocation, cross-origin
 mutation rejection, secure production cookies, static/deep-link routes, restart
-recovery, transaction rollback, and concurrent persistent updates. API tests use
-Fastify injection and do not open a browser or start a UI server.
+recovery, transaction rollback, and concurrent persistent updates. Most API tests
+use Fastify injection. The development-proxy regression tests additionally send
+real HTTP requests through Vite's API proxy to a temporary API/file store on
+ephemeral loopback ports. They exercise ordinary and sample workspace creation,
+session reopening, and rejection of foreign origins with forged forwarding headers.
+Only API routes are requested; no browser is opened or UI rendered.
+
+The proxy tests reproduced HTTP 403 for both workspace creation flows before the
+fix. Vite's string proxy shorthand rewrote Host to the API's port, which no longer
+matched the browser's Origin. The explicit proxy rule now preserves Host. A plain
+GET health check did not detect this failure because origin checks apply to mutations.
 
 Qloo tests additionally cover the fixed credential destination, redirects disabled,
 search-domain validation, strict city and category parameters, cache reuse/expiry,

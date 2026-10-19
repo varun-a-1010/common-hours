@@ -2,6 +2,9 @@
 
 ## 2026-10-20
 
+- Fixed development workspace creation being rejected by the origin check: the
+  Vite proxy now preserves the browser-facing Host. Added three real HTTP proxy
+  tests for ordinary/sample creation, session reopening and foreign-origin rejection.
 - Verified the event-issued Qloo key through bounded live search and coverage probes.
 - Implemented server-only Qloo search/insights, organizer-scoped routes, explicit
   favourite selection, source evidence and reviewed venue-library additions.

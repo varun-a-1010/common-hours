@@ -9,6 +9,10 @@ last_verified: 2026-10-20
 # Architecture
 
 React + Vite serves the client. Fastify serves JSON APIs and the production client.
+In development, Vite proxies `/api` from port 5192 to 3192 while preserving the
+browser-facing Host (`changeOrigin: false`). This lets the API compare the browser's
+Origin against its original host without trusting forwarded headers or relaxing
+the cross-origin mutation check.
 `shared/` owns domain types and Zod input validation. The planner in
 `server/planner.ts` filters hard constraints before ranking explicitly stated
 interests, penalizes recent repeats and negative repeat feedback, schedules an
