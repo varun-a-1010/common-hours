@@ -41,6 +41,21 @@ searches, Bengaluru and New York place insights, and office music insights. Thes
 establish API access and sample coverage, not better outcomes or venue availability.
 The opt-in app-route integration runner is `npm run test:qloo`.
 
+The live integration runner passed at code SHA `45f826c` on 2026-10-20 IST.
+[Sanitized evidence](evidence/qloo-live-2026-10-20.json) records seven HTTP 200 calls
+(three searches and four insight queries), a cached repeat with no additional
+upstream request, real contribution metadata, and unchanged saved plans. Observed
+upstream response times were 269–3305 ms. All test data was synthetic and its
+temporary store was removed; the credential was supplied only in process memory.
+
+Sample results included Linto Coffee, Cafe Noir and Kinya Coffee; cultural venues
+included Chowdiah Memorial Hall and Bangalore International Centre. An office
+music query returned Björk, AiR and Massive Attack, among others. Switching from
+Daft Punk + Spirited Away to Arijit Singh changed four of the six cafe candidates.
+This is input sensitivity, not evidence of improved quality. Some results name
+large complexes or hotels, so venue/category suitability and current operation
+still require review. No price, capacity, reservation or access claim was verified.
+
 ## Deliberate boundaries
 
 - Browser/visual QA was not performed, per the fleet instructions. Varun reviews
@@ -68,3 +83,8 @@ The opt-in app-route integration runner is `npm run test:qloo`.
    The chosen plan is flagged for revision rather than silently staying ready.
 6. Confirm the logistics, mark ready, complete the event and collect feedback.
    Plan the next event from history. Save the private workspace recovery link.
+7. With a server key, open Cultural discovery. Search/select Daft Punk as an artist
+   and Spirited Away as a film; discover cafes in the event city, cultural venues,
+   or artists. Review the source contributions and matched locality. Review a place
+   for the library and supply your own activity details and cost estimate. Confirm
+   that discovering suggestions alone does not change a selected plan or checks.

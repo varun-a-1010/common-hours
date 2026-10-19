@@ -9,6 +9,9 @@
   tests plus an opt-in live integration runner. The default suite now has 29 tests.
 - Kept participant notes private and practical constraints authoritative; no
   bookings, payments, outreach or automatic plan changes were added.
+- Passed the bounded live app-route test at `45f826c`: seven HTTP 200 calls, cache
+  reuse, real source contributions and changed results for changed favourites.
+  Sanitized evidence is retained in `docs/evidence/qloo-live-2026-10-20.json`.
 
 ## 2026-10-17
 

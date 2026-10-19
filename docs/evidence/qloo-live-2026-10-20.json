@@ -1,0 +1,308 @@
+{
+  "testedAt": "2026-10-19T21:28:09.633Z",
+  "sourceSha": "45f826cf754ab5f1e7dff227f5f9d8c4cc5c08a7",
+  "workspace": "temporary synthetic data; removed after the test",
+  "checks": {
+    "authenticatedRoutes": true,
+    "liveSearch": true,
+    "sourceEvidence": true,
+    "cachedRepeat": true,
+    "savedPlansUnchanged": true
+  },
+  "calls": 7,
+  "timings": [
+    {
+      "path": "/search",
+      "status": 200,
+      "milliseconds": 788
+    },
+    {
+      "path": "/search",
+      "status": 200,
+      "milliseconds": 484
+    },
+    {
+      "path": "/search",
+      "status": 200,
+      "milliseconds": 269
+    },
+    {
+      "path": "/v2/insights",
+      "status": 200,
+      "milliseconds": 713
+    },
+    {
+      "path": "/v2/insights",
+      "status": 200,
+      "milliseconds": 3305
+    },
+    {
+      "path": "/v2/insights",
+      "status": 200,
+      "milliseconds": 428
+    },
+    {
+      "path": "/v2/insights",
+      "status": 200,
+      "milliseconds": 453
+    }
+  ],
+  "seeds": [
+    {
+      "name": "Daft Punk",
+      "entityId": "012EF80C-B187-4ECB-9C3D-9CA5228B503C"
+    },
+    {
+      "name": "Spirited Away",
+      "entityId": "9B33A620-68CA-49B3-BFCF-F09CCF8AD595"
+    },
+    {
+      "name": "Arijit Singh",
+      "entityId": "924C8504-4BD8-4615-AB2D-1C16880A8A62"
+    }
+  ],
+  "cafes": {
+    "matchedLocalities": [
+      "Bengaluru, Bangalore Metropolitan Region Development Authority, Bangalore North, Bengaluru Urban, Karnataka, India"
+    ],
+    "fetchedAt": "2026-10-19T21:28:04.677Z",
+    "candidates": [
+      {
+        "name": "Linto Coffee",
+        "entityId": "AC2C055D-1C0A-43D2-8002-DD0A4CEA2A7F",
+        "address": "Sarrakki IV Phase No 84 Dollars Colony, J. P. Nagar Bengaluru, Karnataka 560078, India",
+        "categories": ["Coffee shop", "Cafe"],
+        "contributionCount": 2
+      },
+      {
+        "name": "NYX Lounge Cafe",
+        "entityId": "3C5B5D88-237F-4FF4-B7ED-B0A29F012268",
+        "address": "No.46,Emporium Davanam, 2nd floor Mahatma Gandhi Rd Bengaluru, Karnataka 560001 India",
+        "categories": ["Lounge", "Cafe"],
+        "contributionCount": 2
+      },
+      {
+        "name": "Cafe Noir",
+        "entityId": "0CF28B0C-3B83-4A7F-8082-DC322D10AFF4",
+        "address": "Unit No 206, The Collection, UB City 24, Vittal Mallya Rd, KG Halli, D' Souza Layout, Ashok Nagar Bengaluru, Karnataka 560001 India",
+        "categories": [
+          "Breakfast restaurant",
+          "Cafe",
+          "French restaurant",
+          "Dessert restaurant",
+          "Bar"
+        ],
+        "contributionCount": 2
+      },
+      {
+        "name": "Kinya Coffee",
+        "entityId": "D8E5FA4C-3153-4B8A-8F74-089F7C2255CB",
+        "address": "132 ,Dollars Colony ,7th main 16th Cross Rd, behind MK Ahmed Bazar, JP Nagar 4th Phase Bengaluru, Karnataka 560078 India",
+        "categories": ["Coffee shop"],
+        "contributionCount": 2
+      },
+      {
+        "name": "Cloud Cafe",
+        "entityId": "CEB750FB-DC51-4166-8357-43E453B784E6",
+        "address": "4th Floor 626, 80 Feet Main Rd, opposite to MCDONALD'S, beside Reliance Trends, 2 Stage, Nagarbhavi Bengaluru, Karnataka 560072 India",
+        "categories": [
+          "Italian restaurant",
+          "Cafe",
+          "Chinese restaurant",
+          "Pizza restaurant",
+          "Hookah store",
+          "Hookah bar"
+        ],
+        "contributionCount": 2
+      },
+      {
+        "name": "Cafe Noir - Orion Mall",
+        "entityId": "0724975B-510C-4F02-B977-E7F1662C98BC",
+        "address": "26/1, Dr Rajkumar Rd Rajajinagar Bengaluru, Karnataka 560055 India",
+        "categories": ["Cafe", "Restaurant", "Coffee shop"],
+        "contributionCount": 2
+      }
+    ]
+  },
+  "officeMusic": {
+    "matchedLocalities": [],
+    "fetchedAt": "2026-10-19T21:28:08.204Z",
+    "candidates": [
+      {
+        "name": "Björk",
+        "entityId": "01381184-B533-4E3C-B9DB-43A2FE326744",
+        "address": "",
+        "categories": [],
+        "contributionCount": 2
+      },
+      {
+        "name": "AiR",
+        "entityId": "D2F4960C-AA8F-4245-AB52-1887EFDB90A3",
+        "address": "",
+        "categories": [],
+        "contributionCount": 2
+      },
+      {
+        "name": "Massive Attack",
+        "entityId": "E57B2F09-8078-4EDE-BEC0-4B02794A8D9E",
+        "address": "",
+        "categories": [],
+        "contributionCount": 2
+      },
+      {
+        "name": "Portishead",
+        "entityId": "045707A1-C8EF-443F-A882-1B97AC69DC9A",
+        "address": "",
+        "categories": [],
+        "contributionCount": 2
+      },
+      {
+        "name": "Radiohead",
+        "entityId": "70CAE5BF-2F4C-445C-A3E5-4EDACFC3591C",
+        "address": "",
+        "categories": [],
+        "contributionCount": 2
+      },
+      {
+        "name": "Röyksopp",
+        "entityId": "D1651864-345D-445B-870A-E8AB7A6DD24D",
+        "address": "",
+        "categories": [],
+        "contributionCount": 2
+      }
+    ]
+  },
+  "culture": {
+    "matchedLocalities": [
+      "Bengaluru, Bangalore Metropolitan Region Development Authority, Bangalore North, Bengaluru Urban, Karnataka, India"
+    ],
+    "fetchedAt": "2026-10-19T21:28:08.957Z",
+    "candidates": [
+      {
+        "name": "Chowdiah Memorial Hall",
+        "entityId": "385F0A51-F9CA-4645-B214-5C339260A243",
+        "address": "16th Cross Rd Vyalikaval, Kodandarampura, Malleshwaram Bengaluru, Karnataka 560003 India",
+        "categories": ["Performing arts theater", "Auditorium", "Concert hall"],
+        "contributionCount": 2
+      },
+      {
+        "name": "Rockline cinemas",
+        "entityId": "95661812-F9AD-4CAD-BAD1-BF184DC7ACB3",
+        "address": "No.8, Majestic Service Road Prashanth Nagar, T. Dasarahalli Bengaluru, Karnataka 560057 India",
+        "categories": ["Movie theater"],
+        "contributionCount": 2
+      },
+      {
+        "name": "J N Tata Auditorium",
+        "entityId": "B959FA01-5862-425A-B59C-BB14C84872E3",
+        "address": "National Science Seminar Complex CV Raman Rd, Kodandarampura, Malleshwaram Bengaluru, Karnataka 560012 India",
+        "categories": ["Auditorium"],
+        "contributionCount": 2
+      },
+      {
+        "name": "Shankaraa Foundation",
+        "entityId": "A4BAF63E-D713-4D45-8701-F770D73E9B28",
+        "address": "Shankaraa Kanakapura Main Rd, Doddakallasandra Bengaluru, Karnataka 560062 India",
+        "categories": [
+          "Convention center",
+          "Performing arts theater",
+          "Wedding venue",
+          "Live music venue",
+          "Cultural center",
+          "Event venue"
+        ],
+        "contributionCount": 2
+      },
+      {
+        "name": "Bangalore International Centre",
+        "entityId": "FE72D076-3088-4647-92A3-69307ED66C5A",
+        "address": "7, 4th Main Rd 2 Stage, Domlur Bengaluru, Karnataka 560071 India",
+        "categories": ["Auditorium", "Cultural center"],
+        "contributionCount": 2
+      },
+      {
+        "name": "GM Rejoyz - Banquet's , Auditorium & Catering",
+        "entityId": "F759008E-E3C5-406E-815A-C68E43F661F6",
+        "address": "158/1, 8th cross road 8th Main Rd, Malleshwaram Bengaluru, Karnataka 560003 India",
+        "categories": [
+          "Convention center",
+          "Auditorium",
+          "Banquet hall",
+          "Restaurant supply store",
+          "Event planner"
+        ],
+        "contributionCount": 2
+      }
+    ]
+  },
+  "differentFavourites": {
+    "matchedLocalities": [
+      "Bengaluru, Bangalore Metropolitan Region Development Authority, Bangalore North, Bengaluru Urban, Karnataka, India"
+    ],
+    "fetchedAt": "2026-10-19T21:28:09.629Z",
+    "candidates": [
+      {
+        "name": "PRESTIGE SHANTINIKETAN,",
+        "entityId": "165E6245-2CF5-42D1-A6C4-9950D096FED7",
+        "address": "PRESTIGE SHANTINIKETAN ITPL Main Rd, Maruthi Nagar, KIADB Export Promotion Industrial Area, Whitefield Bengaluru, Karnataka 560066 India",
+        "categories": ["Coffee shop"],
+        "contributionCount": 1
+      },
+      {
+        "name": "Kinya Coffee",
+        "entityId": "D8E5FA4C-3153-4B8A-8F74-089F7C2255CB",
+        "address": "132 ,Dollars Colony ,7th main 16th Cross Rd, behind MK Ahmed Bazar, JP Nagar 4th Phase Bengaluru, Karnataka 560078 India",
+        "categories": ["Coffee shop"],
+        "contributionCount": 1
+      },
+      {
+        "name": "Linto Coffee",
+        "entityId": "AC2C055D-1C0A-43D2-8002-DD0A4CEA2A7F",
+        "address": "Sarrakki IV Phase No 84 Dollars Colony, J. P. Nagar Bengaluru, Karnataka 560078, India",
+        "categories": ["Coffee shop", "Cafe"],
+        "contributionCount": 1
+      },
+      {
+        "name": "The Oberoi, Bengaluru",
+        "entityId": "23828F27-76D1-4C60-8DBA-67005A507346",
+        "address": "37-39, Mahatma Gandhi Rd Yellappa Garden, Yellappa Chetty Layout, Sivanchetti Gardens Bengaluru, Karnataka 560001 India",
+        "categories": [
+          "Bar",
+          "Hotel",
+          "Cafe",
+          "Japanese restaurant",
+          "Event venue",
+          "Banquet hall"
+        ],
+        "contributionCount": 1
+      },
+      {
+        "name": "Hard Rock Cafe Bengaluru",
+        "entityId": "4E2A2771-6B4A-4C88-BB6E-320ABE325A6B",
+        "address": "40, St Mark's Rd Shanthala Nagar, Ashok Nagar Bengaluru, Karnataka 560001 India",
+        "categories": [
+          "Restaurant",
+          "Event venue",
+          "Night club",
+          "American restaurant",
+          "Cafe",
+          "Pub"
+        ],
+        "contributionCount": 1
+      },
+      {
+        "name": "Lavonne Café",
+        "entityId": "B22FE561-C273-4589-A11E-7474F4220077",
+        "address": "263, 3rd Cross Rd 2nd Stage, Defence Colony, Domlur Bengaluru, Karnataka 560071 India",
+        "categories": ["Patisserie", "Coffee shop", "Cafe"],
+        "contributionCount": 1
+      }
+    ]
+  },
+  "sensitivity": {
+    "sameOrderedResults": false,
+    "sharedInTopSix": 2,
+    "interpretation": "Sensitivity check only; not evidence of better recommendations or group satisfaction."
+  },
+  "evidenceClassification": "Sanitized public entity metadata and synthetic test results; no credential, cookie, participant data or private URL."
+}
