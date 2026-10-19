@@ -26,6 +26,8 @@ import type {
 } from '../shared/model';
 import { dateLabel, timeLabel } from '../shared/model';
 import { api, ApiError } from './api';
+import { TastePanel } from './TastePanel';
+import type { TasteEntity } from '../shared/taste';
 import { Brand, Button, CopyLink, Empty, Modal, Notice, SectionTitle, Status } from './components';
 import { BriefForm, CatalogueForm, FeedbackForm, Field, freshBrief, MemberForm } from './forms';
 import {
@@ -44,14 +46,15 @@ import {
   type Action,
 } from './views';
 
-type Tab = 'brief' | 'people' | 'options' | 'agenda' | 'feedback';
+type Tab = 'brief' | 'people' | 'options' | 'discover' | 'agenda' | 'feedback';
 type Screen = 'events' | 'history' | 'library' | 'settings';
 type OpenModal =
   | { kind: 'new'; source?: EventRecord }
   | { kind: 'brief' }
   | { kind: 'member'; member?: Member }
   | { kind: 'remove'; member: Member }
-  | { kind: 'share' | 'invite' | 'catalogue' | 'complete' | 'feedback' }
+  | { kind: 'share' | 'invite' | 'complete' | 'feedback' }
+  | { kind: 'catalogue'; suggestion?: TasteEntity; fetchedAt?: string }
   | { kind: 'check'; check: LogisticsCheck }
   | { kind: 'quote'; blockId: string };
 
@@ -416,6 +419,7 @@ function OrganizerApp() {
                     ['brief', 'The brief'],
                     ['people', 'People'],
                     ['options', 'Explore plans'],
+                    ['discover', 'Cultural discovery'],
                     ['agenda', 'The agenda'],
                     ['feedback', 'After the event'],
                   ] as [Tab, string][]
@@ -437,6 +441,16 @@ function OrganizerApp() {
                 ))}
               </nav>
               <div className="tab-content">
+                <div hidden={tab !== 'discover'}>
+                  <TastePanel
+                    key={`${workspace.id}:${event.id}:${event.brief.city}:${event.brief.format}`}
+                    event={event}
+                    version={workspace.version}
+                    review={(suggestion, fetchedAt) =>
+                      setModal({ kind: 'catalogue', suggestion, fetchedAt })
+                    }
+                  />
+                </div>
                 {tab === 'brief' &&
                   (event.status === 'completed' ? (
                     <div className="surface">
@@ -618,14 +632,18 @@ function OrganizerApp() {
                     <span className="integration-mark">Q</span>
                     <div>
                       <h3>Cultural discovery</h3>
-                      <span className="source-pill sample">Qloo access pending</span>
+                      <span className="source-pill">Optional Qloo discovery</span>
                     </div>
                   </div>
                   <p>
                     Plans currently use the team’s stated preferences and your activity library.
-                    Cultural favourites are saved for a future Qloo integration.
+                    Open Cultural discovery on an event to search favourites and explore Qloo
+                    suggestions when connected.
                   </p>
-                  <p>No Qloo recommendations or affinity scores are being generated.</p>
+                  <p>
+                    Review suggestions before adding them to your library. Qloo does not verify
+                    prices, capacity or availability.
+                  </p>
                 </section>
               </div>
             </>
@@ -754,6 +772,8 @@ function OrganizerApp() {
           )}
           {modal.kind === 'catalogue' && (
             <CatalogueForm
+              suggestion={modal.suggestion}
+              fetchedAt={modal.fetchedAt}
               city={event?.brief.city ?? 'Bengaluru'}
               busy={busy}
               onSave={async (item) =>

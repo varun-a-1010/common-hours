@@ -20,6 +20,10 @@
       "purpose": "Accessible event, participant, catalogue and feedback forms",
       "depends_on": ["src/components.tsx", "shared/model.ts"]
     },
+    "src/TastePanel.tsx": {
+      "purpose": "Explicit favourite selection, live discovery evidence and reviewed place suggestions",
+      "depends_on": ["src/api.ts", "src/components.tsx", "shared/taste.ts"]
+    },
     "src/styles.css": {
       "purpose": "Responsive Common Hours design and locally hosted fonts",
       "depends_on": []
@@ -46,8 +50,12 @@
       "depends_on": ["server/catalogue.ts", "server/planner.ts", "shared/model.ts"]
     },
     "server/taste.ts": {
-      "purpose": "Disabled-by-design Qloo provider boundary pending live validation",
-      "depends_on": ["shared/model.ts"]
+      "purpose": "Server-only Qloo adapter with bounded requests, cached results and sanitized source evidence",
+      "depends_on": ["shared/taste.ts"]
+    },
+    "scripts/test-qloo-live.ts": {
+      "purpose": "Opt-in bounded live integration check using temporary synthetic workspaces",
+      "depends_on": ["server/app.ts", "server/taste.ts", "server/store.ts"]
     }
   }
 }

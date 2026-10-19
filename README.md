@@ -44,7 +44,20 @@ The Postgres adapter has been tested against isolated PostgreSQL; a live Deltaba
 tenant has not been provisioned or connected in this task.
 
 All starter activities and prices are illustrative. Add your own venue options
-and quotes, then verify each arrangement. Qloo is not connected and is not claimed
-as a working integration. [Integration plan](docs/qloo.md).
+and quotes, then verify each arrangement.
+
+## Qloo discovery
+
+Supply `QLOO_API_KEY` to the server process to enable the **Cultural discovery** tab.
+It searches real favourites and returns places in the event city, or artists,
+films and books for office activities. Select matches explicitly, review the
+source evidence, then optionally add a place to the activity library with your
+own cost, duration and capacity. Saved plans and logistics remain authoritative.
+The key stays on the server; never use a `VITE_` variable for it. The event API
+origin is fixed to `https://hackathon.api.qloo.com`.
+
+With the key present, `npm run test:qloo` runs an isolated live integration check
+with at most ten API requests, prints sanitized evidence and removes its test data.
+Normal tests do not call Qloo. [Integration details and boundaries](docs/qloo.md).
 
 See [docs/index.md](docs/index.md) for scope, access controls and verification.

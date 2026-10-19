@@ -15,7 +15,8 @@ import {
 import type { EventRecord, Workspace } from '../shared/model';
 import { hash, newEvent, newWorkspace, ownerView, publicView, same, token } from './data';
 import { briefFingerprint, buildPlans, makeChecks, planProblems, recost } from './planner';
-import { tasteProvider } from './taste';
+import { tasteProvider, TasteError, type TasteProvider } from './taste';
+import { tasteKinds } from '../shared/taste';
 
 class HttpError extends Error {
   constructor(
@@ -34,8 +35,14 @@ const memberCookie = (eventId: string) => `ch_member_${eventId}`;
 
 export async function buildApp(
   store: Store,
-  options: { staticRoot?: string; origin?: string; production?: boolean } = {},
+  options: {
+    staticRoot?: string;
+    origin?: string;
+    production?: boolean;
+    taste?: TasteProvider;
+  } = {},
 ) {
+  const taste = options.taste ?? tasteProvider;
   const app = Fastify({ logger: false, bodyLimit: 64 * 1024, trustProxy: false });
   await app.register(cookie);
   await app.register(rateLimit, { max: 180, timeWindow: '1 minute' });
@@ -57,6 +64,8 @@ export async function buildApp(
     }
   });
   app.setErrorHandler((error, _request, reply) => {
+    if (error instanceof TasteError)
+      return reply.code(error.statusCode).send({ error: error.message });
     if (error instanceof ZodError)
       return reply.code(400).send({ error: error.issues.map((i) => i.message).join(' ') });
     const status = (error as HttpError).statusCode ?? 500;
@@ -145,7 +154,41 @@ export async function buildApp(
     );
   }
 
-  app.get('/api/health', async () => ({ ok: true, taste: tasteProvider.status }));
+  app.get('/api/health', async () => ({ ok: true, taste: taste.status }));
+  app.post(
+    '/api/taste/search',
+    { config: { rateLimit: { max: 20, timeWindow: '1 minute' } } },
+    async (request) => {
+      await owner(request);
+      const input = z
+        .object({ query: z.string().trim().min(2).max(160), kind: z.enum(tasteKinds) })
+        .parse(request.body);
+      return { entities: await taste.search(input.query, input.kind) };
+    },
+  );
+  app.post(
+    '/api/events/:id/taste',
+    { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } },
+    async (request) => {
+      const workspace = await owner(request);
+      const event = findEvent(workspace, params(request).id);
+      const input = z
+        .object({
+          version: versionSchema,
+          kind: z.enum(tasteKinds),
+          entityIds: z.array(z.string().uuid()).min(1).max(8),
+          focus: z.enum(['cafes', 'culture', 'all']).default('cafes'),
+        })
+        .parse(request.body);
+      if (input.version !== workspace.version)
+        fail(409, 'The event changed. Refresh it before finding suggestions.');
+      if (event.status === 'completed')
+        fail(400, 'Start a new event to explore cultural suggestions.');
+      // Selected entity IDs and city only; no names, diets, notes or free-text favourites.
+      // Discovery is read-only and never changes a saved event plan.
+      return taste.discover({ ...input, city: event.brief.city });
+    },
+  );
   app.post(
     '/api/workspaces',
     { config: { rateLimit: { max: 12, timeWindow: '1 hour' } } },

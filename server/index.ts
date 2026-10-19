@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import { loadEnvFile } from 'node:process';
 import { FileStore, PostgresStore } from './store';
 import { buildApp } from './app';
+import { createTasteProvider } from './taste';
 
 try {
   loadEnvFile();
@@ -13,6 +14,7 @@ const store = process.env.DATABASE_URL
   : new FileStore(resolve(process.env.DATA_DIR ?? '.data'));
 const production = process.env.NODE_ENV === 'production';
 const app = await buildApp(store, {
+  taste: createTasteProvider({ apiKey: process.env.QLOO_API_KEY }),
   production,
   origin: process.env.APP_ORIGIN,
   staticRoot: production ? resolve('dist/client') : undefined,

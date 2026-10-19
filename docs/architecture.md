@@ -2,8 +2,8 @@
 type: Reference
 title: Architecture
 description: Independent React and Fastify app with a deterministic planner and scoped share links.
-timestamp: 2026-10-17
-last_verified: 2026-10-17
+timestamp: 2026-10-20
+last_verified: 2026-10-20
 ---
 
 # Architecture
@@ -43,6 +43,12 @@ to the exact HTTPS origin in deployment so cookies are Secure and origin checks
 work behind a reverse proxy. No externally fetched URLs or automatic outreach.
 Production responses use a restrictive same-origin content security policy. Fonts
 are bundled locally. The API loads optional `.env` values at process startup.
+
+Optional Qloo discovery is server-only and organizer-scoped. Explicit searches
+resolve favourites before insights are requested; the event city comes from the
+authenticated workspace, not arbitrary client fields. Discovery is read-only;
+selected places become normal custom catalogue entries only after organizer review.
+The key never reaches the client and the HTTP origin is fixed. See [Qloo](qloo.md).
 
 The sample catalogue is illustrative; capacity/price/diet/access checks must be
 confirmed before ready. Feedback opens only on completed events. Completed events

@@ -10,7 +10,8 @@ import {
   type Interest,
   type Member,
 } from '../shared/model';
-import { Button } from './components';
+import { Button, Notice } from './components';
+import type { TasteEntity } from '../shared/taste';
 
 export function Field({
   label,
@@ -323,8 +324,8 @@ export function MemberForm({
         <details className="optional-field wide">
           <summary>Share a few cultural favourites (optional)</summary>
           <p>
-            Films, artists, books or places you enjoy. Saved for future discovery; these do not
-            influence recommendations yet.
+            Films, artists, books or places you enjoy. The organizer can select individual
+            favourites to explore Qloo suggestions. These notes are not sent automatically.
           </p>
           <textarea
             aria-label="Cultural favourites"
@@ -349,18 +350,27 @@ export function CatalogueForm({
   busy,
   city,
   onSave,
+  suggestion,
+  fetchedAt,
 }: {
   busy: boolean;
   city: string;
   onSave: (item: ItemInput) => Promise<void>;
+  suggestion?: TasteEntity;
+  fetchedAt?: string;
 }) {
+  const [provided, setProvided] = useState({
+    duration: !suggestion,
+    maxPeople: !suggestion,
+    perPerson: !suggestion,
+  });
   const [item, setItem] = useState<ItemInput>({
-    name: '',
-    description: '',
+    name: suggestion?.name.slice(0, 100) ?? '',
+    description: suggestion?.description.slice(0, 500) ?? '',
     kind: 'activity',
     format: 'outing',
     city,
-    tags: ['creative'],
+    tags: suggestion ? [] : ['creative'],
     duration: 90,
     minPeople: 1,
     maxPeople: 20,
@@ -369,11 +379,18 @@ export function CatalogueForm({
     stepFree: 'unknown',
     diets: [],
     indoor: true,
-    sourceUrl: '',
-    details: '',
+    sourceUrl: suggestion?.website ?? '',
+    details: suggestion
+      ? `Discovered through Qloo on ${fetchedAt ?? 'this session'}. Entity: ${suggestion.entityId}. Address reported by Qloo: ${suggestion.address}. Group arrangements require confirmation.`.slice(
+          0,
+          1000,
+        )
+      : '',
   });
-  const set = <K extends keyof ItemInput>(key: K, value: ItemInput[K]) =>
+  const set = <K extends keyof ItemInput>(key: K, value: ItemInput[K]) => {
+    if (key in provided) setProvided((p) => ({ ...p, [key]: true }));
     setItem((i) => ({ ...i, [key]: value }));
+  };
   return (
     <form
       onSubmit={async (e) => {
@@ -382,6 +399,15 @@ export function CatalogueForm({
       }}
     >
       <fieldset disabled={busy} className="form-grid">
+        {suggestion && (
+          <div className="wide">
+            <Notice tone="warm">
+              Qloo supplied the name and venue information. Enter your own duration, group capacity
+              and cost estimate; confirm practical requirements with the venue before making
+              arrangements.
+            </Notice>
+          </div>
+        )}
         <Field label="Activity or venue name" wide>
           <input
             required
@@ -422,7 +448,7 @@ export function CatalogueForm({
             type="number"
             min={15}
             max={480}
-            value={item.duration}
+            value={provided.duration ? item.duration : ''}
             onChange={(e) => set('duration', Number(e.target.value))}
           />
         </Field>
@@ -471,7 +497,7 @@ export function CatalogueForm({
             type="number"
             min={1}
             max={500}
-            value={item.maxPeople}
+            value={provided.maxPeople ? item.maxPeople : ''}
             onChange={(e) => set('maxPeople', Number(e.target.value))}
           />
         </Field>
@@ -481,7 +507,7 @@ export function CatalogueForm({
             type="number"
             min={0}
             max={1000000}
-            value={item.perPerson}
+            value={provided.perPerson ? item.perPerson : ''}
             onChange={(e) => set('perPerson', Number(e.target.value))}
           />
         </Field>
