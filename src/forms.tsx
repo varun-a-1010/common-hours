@@ -334,6 +334,26 @@ export function MemberForm({
             value={m.favourites}
             onChange={(e) => setM({ ...m, favourites: e.target.value })}
           />
+          {!!m.tasteSeeds?.length && (
+            <div className="taste-seeds">
+              <p>
+                Confirmed references used for Qloo comparisons. Remove any you no longer want used.
+              </p>
+              {m.tasteSeeds.map((seed) => (
+                <Button
+                  key={seed.entityId}
+                  onClick={() =>
+                    setM({
+                      ...m,
+                      tasteSeeds: m.tasteSeeds?.filter((s) => s.entityId !== seed.entityId),
+                    })
+                  }
+                >
+                  Remove {seed.name}
+                </Button>
+              ))}
+            </div>
+          )}
         </details>
         <div className="form-actions wide">
           <Button variant="primary" type="submit" disabled={busy}>
@@ -386,6 +406,7 @@ export function CatalogueForm({
           1000,
         )
       : '',
+    ...(suggestion ? { qloo: { entityId: suggestion.entityId, name: suggestion.name } } : {}),
   });
   const set = <K extends keyof ItemInput>(key: K, value: ItemInput[K]) => {
     if (key in provided) setProvided((p) => ({ ...p, [key]: true }));

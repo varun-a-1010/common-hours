@@ -1,6 +1,12 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import type { PlaceFocus, TasteDiscovery, TasteEntity, TasteKind } from '../shared/taste';
+import type {
+  PlaceFocus,
+  TasteComparison,
+  TasteDiscovery,
+  TasteEntity,
+  TasteKind,
+} from '../shared/taste';
 
 export const QLOO_ORIGIN = 'https://hackathon.api.qloo.com';
 export class TasteError extends Error {
@@ -14,6 +20,11 @@ export class TasteError extends Error {
 export interface TasteProvider {
   status: 'not-connected' | 'configured';
   search(query: string, kind: TasteKind): Promise<TasteEntity[]>;
+  compare(input: {
+    entityIds: string[];
+    candidateEntityIds: string[];
+    city: string;
+  }): Promise<TasteComparison>;
   discover(input: {
     kind: TasteKind;
     entityIds: string[];
@@ -154,6 +165,82 @@ export function createTasteProvider(
       return data.results
         .map((raw) => entity(raw, kind))
         .filter((e): e is TasteEntity => e !== null);
+    },
+    async compare(input) {
+      const ids = [
+        ...new Set(
+          z
+            .array(uuid)
+            .min(1)
+            .max(8)
+            .parse(input.entityIds)
+            .map((id) => id.toUpperCase()),
+        ),
+      ].sort();
+      const candidates = [
+        ...new Set(
+          z
+            .array(uuid)
+            .min(1)
+            .max(20)
+            .parse(input.candidateEntityIds)
+            .map((id) => id.toUpperCase()),
+        ),
+      ].sort();
+      if (!input.city.trim())
+        throw new TasteError('Add the event city before comparing venues.', 422);
+      const { data, fetchedAt } = await get('/v2/insights', {
+        'filter.type': 'urn:entity:place',
+        'filter.results.entities': candidates.join(','),
+        'signal.interests.entities': ids.join(','),
+        'filter.location.query': input.city.trim(),
+        'filter.location.radius': '0',
+        'feature.explainability': 'true',
+        take: String(candidates.length),
+      });
+      const rows = record(data.results).entities;
+      if (!Array.isArray(rows))
+        throw new TasteError('Qloo returned an unexpected comparison response.');
+      const seen = new Set<string>();
+      const scored = rows
+        .flatMap((row) => {
+          const resolved = entity(row, 'place');
+          const query = record(record(row).query);
+          const id = resolved?.entityId.toUpperCase();
+          if (
+            !id ||
+            !candidates.includes(id) ||
+            seen.has(id) ||
+            typeof query.affinity !== 'number' ||
+            !Number.isFinite(query.affinity) ||
+            query.affinity < 0
+          )
+            return [];
+          seen.add(id);
+          const contributions = array(record(query.explainability)['signal.interests.entities'])
+            .map(record)
+            .map((r) => string(r.entity_id).toUpperCase())
+            .filter((id) => ids.includes(id));
+          return [
+            {
+              entityId: id,
+              affinity: query.affinity,
+              contributingEntityIds: [...new Set(contributions)],
+            },
+          ];
+        })
+        .sort((a, b) => b.affinity - a.affinity || a.entityId.localeCompare(b.entityId));
+      return {
+        queryId: randomUUID(),
+        fetchedAt,
+        inputEntityIds: ids,
+        candidateEntityIds: candidates,
+        results: scored.map((row) => ({
+          entityId: row.entityId,
+          rank: 1 + scored.filter((other) => other.affinity > row.affinity).length,
+          contributingEntityIds: row.contributingEntityIds,
+        })),
+      };
     },
     async discover(input) {
       const ids = [...new Set(z.array(uuid).min(1).max(8).parse(input.entityIds))];

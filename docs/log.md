@@ -2,6 +2,17 @@
 
 ## 2026-10-20
 
+- Improved the recurring-event workflow after examining Common Bill, Common Ground
+  and Theme Night GM public implementations: persistent per-person references,
+  structured Qloo venue links, evidence inside feasible plan options, explicit
+  unknowns, and before/after revision summaries with retained-check counts.
+- Added bounded per-profile candidate comparisons with cache reuse, strict feasible
+  candidate sets, equal person weighting, conservative tie-breaking and version-safe
+  persistence. Hard requirements and direct preferences remain authoritative.
+- Passed 42 default tests, formatting, strict TypeScript and production build.
+  Extended the opt-in live runner to exercise two individual profiles without
+  exceeding ten upstream calls. Browser/visual QA remains reserved for Varun.
+
 - Fixed development workspace creation being rejected by the origin check: the
   Vite proxy now preserves the browser-facing Host. Added three real HTTP proxy
   tests for ordinary/sample creation, session reopening and foreign-origin rejection.

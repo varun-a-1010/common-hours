@@ -1,3 +1,6 @@
+import type { PlanTaste, TasteSeed } from './taste';
+import type { PlanRevision } from './revision';
+
 export const interests = [
   'creative',
   'games',
@@ -37,6 +40,7 @@ export interface Member {
   stepFree: boolean;
   notes: string;
   favourites: string;
+  tasteSeeds?: TasteSeed[];
   secretHash?: string;
   claimToken?: string;
 }
@@ -59,6 +63,7 @@ export interface CatalogueItem {
   source: 'sample' | 'custom';
   sourceUrl: string;
   details: string;
+  qloo?: { entityId: string; name: string };
 }
 export interface PlanBlock {
   id: string;
@@ -86,6 +91,8 @@ export interface Plan {
   matchedPeople: number;
   knownPeople: number;
   fingerprint: string;
+  taste?: PlanTaste;
+  people?: { memberId: string; interests: Interest[] }[];
 }
 export interface Check {
   id: string;
@@ -119,6 +126,8 @@ export interface EventRecord {
   completedAt: string | null;
   messages: string[];
   needsReplan?: boolean;
+  useTaste?: boolean;
+  lastRevision?: PlanRevision;
 }
 export interface Workspace {
   id: string;

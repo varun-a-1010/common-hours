@@ -1,8 +1,24 @@
 import { z } from 'zod';
 import { diets, interests, minutes } from './model';
+import { tasteKinds } from './taste';
 
 const text = (max: number) => z.string().trim().max(max);
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
+export const tasteSeedsSchema = z
+  .array(
+    z.object({
+      entityId: z
+        .string()
+        .uuid()
+        .transform((id) => id.toUpperCase()),
+      name: text(200).min(1),
+      kind: z.enum(tasteKinds),
+    }),
+  )
+  .max(8)
+  .transform((items) =>
+    items.filter((s, i) => items.findIndex((x) => x.entityId === s.entityId) === i),
+  );
 export const briefSchema = z
   .object({
     title: text(100).min(2),
@@ -47,6 +63,7 @@ export const memberSchema = z
     stepFree: z.boolean(),
     notes: text(600),
     favourites: text(400),
+    tasteSeeds: tasteSeedsSchema.optional(),
   })
   .refine((m) => !m.likes.some((t) => m.avoids.includes(t)), {
     message: 'An interest cannot also be something to avoid.',
@@ -74,6 +91,15 @@ export const catalogueSchema = z
       'Use an http or https link.',
     ),
     details: text(1000),
+    qloo: z
+      .object({
+        entityId: z
+          .string()
+          .uuid()
+          .transform((id) => id.toUpperCase()),
+        name: text(200).min(1),
+      })
+      .optional(),
   })
   .refine((i) => i.maxPeople >= i.minPeople, {
     message: 'Maximum group size must cover the minimum.',

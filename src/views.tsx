@@ -30,6 +30,8 @@ import {
 } from '../shared/model';
 import { Button, CheckPill, Empty, ExternalLink, Notice, SectionTitle, Status } from './components';
 import { Field, FeedbackForm } from './forms';
+import { PlanEvidence, RevisionView } from './PlanEvidence';
+import { comparePlans } from '../shared/revision';
 
 export type Action = (action: string, payload?: Record<string, unknown>) => Promise<boolean>;
 export function EventSummary({ event, edit }: { event: EventRecord; edit?: () => void }) {
@@ -249,6 +251,11 @@ export function PeoplePanel({
                 {m.favourites && (
                   <p className="muted small-text">Favourites saved: {m.favourites}</p>
                 )}
+                {!!m.tasteSeeds?.length && (
+                  <p className="muted small-text">
+                    Confirmed Qloo references: {m.tasteSeeds.map((s) => s.name).join(', ')}
+                  </p>
+                )}
               </div>
               {!completed && (
                 <div className="person-actions">
@@ -284,19 +291,23 @@ export function PlanOptions({
   generate,
   choose,
   library,
+  discover,
 }: {
   event: EventRecord;
   busy: boolean;
-  generate: () => void;
+  generate: (useTaste: boolean) => void;
   choose: (p: Plan) => void;
   library: () => void;
+  discover: () => void;
 }) {
+  const [useTaste, setUseTaste] = useState(event.useTaste ?? false);
+  const profiles = event.members.filter((m) => m.tasteSeeds?.length).length;
   return (
     <>
       <SectionTitle
         title={event.selected ? 'A few ways to revise the plan' : 'Find your kind of afternoon'}
         action={
-          <Button onClick={generate} disabled={busy}>
+          <Button onClick={() => generate(useTaste)} disabled={busy}>
             <RefreshCw size={16} />
             {busy ? 'Finding plans…' : 'Refresh options'}
           </Button>
@@ -305,6 +316,24 @@ export function PlanOptions({
         Based on stated interests, practical requirements and recent events. Costs include a 10%
         reserve.
       </SectionTitle>
+      <div className="planning-taste">
+        <label className="check-label">
+          <input
+            type="checkbox"
+            checked={useTaste}
+            disabled={busy}
+            onChange={(e) => setUseTaste(e.target.checked)}
+          />
+          Compare linked venues with Qloo
+        </label>
+        <p>
+          {profiles} of {event.members.length} people have confirmed favourites. Qloo receives
+          selected reference IDs, venue IDs and city. Names and private requirements stay here.
+        </p>
+        <Button variant="plain" onClick={discover} disabled={busy}>
+          Set up favourites & venues <ArrowRight size={15} />
+        </Button>
+      </div>
       <Notice tone="warm">
         The starter library contains example activities and estimated prices. Add actual venues and
         quotes before finalizing arrangements.
@@ -325,7 +354,7 @@ export function PlanOptions({
           icon={<Leaf />}
           title="Let’s put a few ideas on the table"
           action={
-            <Button variant="primary" onClick={generate} disabled={busy}>
+            <Button variant="primary" onClick={() => generate(useTaste)} disabled={busy}>
               Find event plans
             </Button>
           }
@@ -381,6 +410,24 @@ export function PlanOptions({
                 <strong>{money(plan.total)}</strong>
                 <span>{money(Math.ceil(plan.total / event.brief.headcount))} / person</span>
               </div>
+              {event.selected && (
+                <RevisionView
+                  preview
+                  revision={comparePlans(
+                    event.selected,
+                    plan,
+                    event.selected.fingerprint === plan.fingerprint
+                      ? event.checks.filter(
+                          (c) =>
+                            c.done &&
+                            (c.itemId === 'event' ||
+                              plan.blocks.some((b) => b.locked && b.itemId === c.itemId)),
+                        ).length
+                      : 0,
+                  )}
+                />
+              )}
+              <PlanEvidence event={event} plan={plan} />
               <details className="cautions">
                 <summary>{plan.cautions.length} things to keep in view</summary>
                 <ul>
@@ -479,6 +526,8 @@ export function AgendaPanel({
           the plan or budget.
         </Notice>
       )}
+      {event.lastRevision && <RevisionView revision={event.lastRevision} />}
+      <PlanEvidence event={event} plan={plan} />
       <div className="agenda-layout">
         <section>
           <div className="agenda-sheet">

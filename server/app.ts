@@ -10,11 +10,14 @@ import {
   catalogueSchema,
   feedbackSchema,
   memberSchema,
+  tasteSeedsSchema,
   versionSchema,
 } from '../shared/validation';
 import type { EventRecord, Workspace } from '../shared/model';
 import { hash, newEvent, newWorkspace, ownerView, publicView, same, token } from './data';
-import { briefFingerprint, buildPlans, makeChecks, planProblems, recost } from './planner';
+import { briefFingerprint, makeChecks, planProblems, recost } from './planner';
+import { planWithTaste } from './plan-with-taste';
+import { comparePlans } from '../shared/revision';
 import { tasteProvider, TasteError, type TasteProvider } from './taste';
 import { tasteKinds } from '../shared/taste';
 
@@ -43,6 +46,7 @@ export async function buildApp(
   } = {},
 ) {
   const taste = options.taste ?? tasteProvider;
+  const tasteRuns = new Set<string>();
   const app = Fastify({ logger: false, bodyLimit: 64 * 1024, trustProxy: false });
   await app.register(cookie);
   await app.register(rateLimit, { max: 180, timeWindow: '1 minute' });
@@ -245,18 +249,58 @@ export async function buildApp(
       w.events.unshift(event);
     }),
   );
-  app.post('/api/events/:id', async (request) =>
-    mutate(request, (w, body) => {
+  app.post('/api/events/:id', async (request) => {
+    const body = z.record(z.string(), z.unknown()).parse(request.body);
+    if (body.action === 'generate' || body.action === 'replan') {
+      const workspace = await owner(request);
+      if (versionSchema.parse(body.version) !== workspace.version)
+        fail(409, 'The workspace changed. Refresh it before finding plans.');
+      const event = structuredClone(findEvent(workspace, params(request).id));
+      if (event.status === 'completed') fail(400, 'Start a new event to explore plans.');
+      if (body.action === 'replan' && !event.selected) fail(400, 'Choose a plan first.');
+      const excluded =
+        body.action === 'replan'
+          ? z
+              .array(z.string())
+              .max(100)
+              .parse(body.excludedItemIds ?? [])
+          : [];
+      event.excludedItemIds = [...new Set([...event.excludedItemIds, ...excluded])];
+      event.useTaste = z.boolean().parse(body.useTaste ?? event.useTaste ?? false);
+      if (tasteRuns.has(workspace.id))
+        fail(429, 'A comparison is already running. Wait for it to finish.');
+      tasteRuns.add(workspace.id);
+      try {
+        // No network request under the store lock. The second version check in
+        // mutate rejects results if preferences, quotes, locks or the library changed.
+        const result = await planWithTaste(event, workspace.catalogue, workspace.events, taste);
+        return await mutate(request, (w) => {
+          const current = findEvent(w, event.id);
+          current.useTaste = event.useTaste;
+          current.excludedItemIds = event.excludedItemIds;
+          current.options = result.plans;
+          current.messages = result.messages;
+          if (current.selected?.blocks.some((b) => excluded.includes(b.itemId))) {
+            current.status = 'planned';
+            current.checks = current.checks.map((c) =>
+              excluded.includes(c.itemId) ? { ...c, done: false } : c,
+            );
+          }
+        });
+      } finally {
+        tasteRuns.delete(workspace.id);
+      }
+    }
+    return mutate(request, (w, body) => {
       const e = findEvent(w, params(request).id);
       const action = z
         .enum([
           'brief',
           'member',
           'remove-member',
-          'generate',
+          'taste-profile',
           'select',
           'lock',
-          'replan',
           'check',
           'quote',
           'ready',
@@ -307,10 +351,11 @@ export async function buildApp(
           invalidate(e);
           break;
         }
-        case 'generate': {
-          const result = buildPlans(e, w.catalogue, w.events, !!e.selected);
-          e.options = result.plans;
-          e.messages = result.messages;
+        case 'taste-profile': {
+          const member =
+            e.members.find((m) => m.id === body.memberId) ?? fail(404, 'Participant not found.');
+          member.tasteSeeds = tasteSeedsSchema.parse(body.seeds);
+          invalidate(e);
           break;
         }
         case 'select': {
@@ -327,6 +372,12 @@ export async function buildApp(
                     selected.blocks.some((b) => b.locked && b.itemId === c.itemId),
                 )
               : [];
+          if (e.selected)
+            e.lastRevision = comparePlans(
+              e.selected,
+              selected,
+              preserved.filter((c) => c.done).length,
+            );
           e.selected = structuredClone(selected);
           e.checks = makeChecks(e, selected, preserved);
           e.status = 'planned';
@@ -340,24 +391,6 @@ export async function buildApp(
             fail(404, 'Choose an arrangement first.');
           block.locked = z.boolean().parse(body.locked);
           e.options = [];
-          break;
-        }
-        case 'replan': {
-          if (!e.selected) fail(400, 'Choose a plan first.');
-          const excluded = z
-            .array(z.string())
-            .max(100)
-            .parse(body.excludedItemIds ?? []);
-          e.excludedItemIds = [...new Set([...e.excludedItemIds, ...excluded])];
-          const result = buildPlans(e, w.catalogue, w.events, true);
-          e.options = result.plans;
-          e.messages = result.messages;
-          if (e.selected!.blocks.some((b) => excluded.includes(b.itemId))) {
-            e.status = 'planned';
-            e.checks = e.checks.map((c) =>
-              excluded.includes(c.itemId) ? { ...c, done: false } : c,
-            );
-          }
           break;
         }
         case 'check': {
@@ -420,8 +453,8 @@ export async function buildApp(
           break;
         }
       }
-    }),
-  );
+    });
+  });
 
   app.get('/api/share/:workspace/:event/:token', async (request) =>
     publicView((await publicAccess(request, 'share')).event),

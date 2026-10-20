@@ -41,8 +41,8 @@ try {
     payload: { name: 'Isolated Qloo test', demo: true },
   });
   assert.equal(created.statusCode, 201);
-  const workspace = created.json(),
-    event = workspace.events[0];
+  let workspace = created.json();
+  const event = workspace.events[0];
   const cookie = created.cookies.map((c) => `${c.name}=${c.value}`).join('; ');
   async function search(query: string, kind: TasteKind) {
     const response = await app.inject({
@@ -94,6 +94,98 @@ try {
     (await app.inject({ url: '/api/workspace', headers: { cookie } })).json(),
     workspace,
   );
+  async function mutate(url: string, body: Record<string, unknown>) {
+    const r = await app.inject({
+      method: 'POST',
+      url,
+      headers: { cookie },
+      payload: { version: workspace.version, ...body },
+    });
+    assert.equal(r.statusCode, 200, r.json().error ?? 'Planning action failed');
+    workspace = r.json();
+  }
+  // New isolated event, two synthetic people, and organizer-supplied example
+  // logistics. Live taste evidence never verifies these example arrangements.
+  await mutate('/api/events', {
+    brief: {
+      ...event.brief,
+      title: 'Synthetic venue comparison',
+      headcount: 2,
+      includeMeal: false,
+      budget: 20000,
+      format: 'outing',
+    },
+  });
+  const planningId = workspace.events[0].id;
+  for (const [index, reference] of [electronic, indian].entries()) {
+    await mutate(`/api/events/${planningId}`, {
+      action: 'member',
+      member: {
+        name: `Synthetic person ${index + 1}`,
+        likes: ['music', 'culture'],
+        avoids: [],
+        diets: [],
+        stepFree: false,
+        notes: '',
+        favourites: '',
+        tasteSeeds: [
+          {
+            entityId: reference.entityId,
+            name: reference.name,
+            kind: reference.kind,
+          },
+        ],
+      },
+    });
+  }
+  assert.ok(cafes.candidates.length >= 2, 'Two real venues are needed for the comparison check.');
+  for (const venue of cafes.candidates.slice(0, 2)) {
+    await mutate('/api/catalogue', {
+      item: {
+        kind: 'activity',
+        name: venue.name.slice(0, 100),
+        description: 'Synthetic test activity; logistics unverified.',
+        format: 'outing',
+        city: event.brief.city,
+        tags: ['music', 'culture'],
+        duration: 60,
+        minPeople: 1,
+        maxPeople: 10,
+        perPerson: 100,
+        fixedCost: 0,
+        stepFree: 'unknown',
+        diets: [],
+        indoor: true,
+        sourceUrl: venue.website,
+        details: 'Synthetic example only.',
+        qloo: { entityId: venue.entityId, name: venue.name },
+      },
+    });
+  }
+  await mutate(`/api/events/${planningId}`, { action: 'generate', useTaste: true });
+  const comparedPlan = workspace.events[0].options.find(
+    (p: { taste?: { people: { venues: unknown[] }[] } }) =>
+      p.taste?.people.some((person) => person.venues.length),
+  );
+  assert.ok(comparedPlan, 'No linked option appeared in the generated shortlist.');
+  assert.ok(
+    comparedPlan.taste.people.every((p: { status: string }) => p.status === 'assessed'),
+    'Live per-person assessment failed.',
+  );
+  assert.ok(
+    comparedPlan.taste.people.some((p: { venues: { rank?: number }[] }) =>
+      p.venues.some((v) => v.rank !== undefined),
+    ),
+    'Qloo supplied no candidate affinity evidence.',
+  );
+  assert.equal(
+    workspace.events[0].selected,
+    null,
+    'Comparison must not select a plan automatically.',
+  );
+  const beforeComparisonCache = calls;
+  await mutate(`/api/events/${planningId}`, { action: 'generate', useTaste: true });
+  assert.equal(calls, beforeComparisonCache, 'Repeated comparison did not use the cache.');
   const describe = (r: TasteDiscovery) => ({
     matchedLocalities: r.matchedLocalities,
     fetchedAt: r.fetchedAt,
@@ -117,10 +209,24 @@ try {
       sourceEvidence: true,
       cachedRepeat: true,
       savedPlansUnchanged: true,
+      perPersonCandidateComparison: true,
+      comparisonCache: true,
+      comparisonDoesNotAutoSelect: true,
     },
     calls,
     timings,
     seeds: [electronic, film, indian].map((e) => ({ name: e.name, entityId: e.entityId })),
+    comparison: {
+      title: comparedPlan.title,
+      people: comparedPlan.taste.people.map(
+        (p: { status: string; candidateCount: number; venues: { rank?: number }[] }) => ({
+          status: p.status,
+          candidatesQueried: p.candidateCount,
+          returnedRanks: p.venues.map((v) => v.rank ?? null),
+        }),
+      ),
+      logistics: 'Synthetic organizer estimates, not venue facts.',
+    },
     cafes: describe(cafes),
     officeMusic: describe(music),
     culture: describe(culture),

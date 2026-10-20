@@ -177,12 +177,12 @@ function OrganizerApp() {
   }
   const action: Action = (name, data = {}) =>
     event ? mutate(`/api/events/${event.id}`, { ...data, action: name }) : Promise.resolve(false);
-  async function generate(excluded?: string[]) {
+  async function generate(excluded?: string[], useTaste?: boolean) {
     if (
-      await action(
-        event?.selected && excluded ? 'replan' : 'generate',
-        excluded ? { excludedItemIds: excluded } : {},
-      )
+      await action(event?.selected && excluded ? 'replan' : 'generate', {
+        ...(excluded ? { excludedItemIds: excluded } : {}),
+        ...(useTaste !== undefined ? { useTaste } : {}),
+      })
     )
       setTab('options');
   }
@@ -446,6 +446,9 @@ function OrganizerApp() {
                     key={`${workspace.id}:${event.id}:${event.brief.city}:${event.brief.format}`}
                     event={event}
                     version={workspace.version}
+                    saving={busy}
+                    saveProfile={(memberId, seeds) => action('taste-profile', { memberId, seeds })}
+                    planning={() => setTab('options')}
                     review={(suggestion, fetchedAt) =>
                       setModal({ kind: 'catalogue', suggestion, fetchedAt })
                     }
@@ -498,9 +501,11 @@ function OrganizerApp() {
                     </Empty>
                   ) : (
                     <PlanOptions
+                      key={event.id}
                       event={event}
                       busy={busy}
-                      generate={() => void generate()}
+                      generate={(useTaste) => void generate(undefined, useTaste)}
+                      discover={() => setTab('discover')}
                       choose={async (p) => {
                         if (await action('select', { planId: p.id })) {
                           setTab('agenda');

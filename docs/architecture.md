@@ -51,7 +51,13 @@ are bundled locally. The API loads optional `.env` values at process startup.
 Optional Qloo discovery is server-only and organizer-scoped. Explicit searches
 resolve favourites before insights are requested; the event city comes from the
 authenticated workspace, not arbitrary client fields. Discovery is read-only;
-selected places become normal custom catalogue entries only after organizer review.
+selected places become custom catalogue entries with a structured Qloo link after
+organizer review. Optional `plan-with-taste.ts` queries individual profiles against
+feasible linked venues, and `planning-evidence.ts` breaks ties conservatively.
+Network calls precede a second version check and never run under a storage lock.
+Plan evidence and selected revision summaries persist in the workspace, while
+public projections continue to omit them. Old stored documents remain readable
+because new fields are optional; regenerating plans adds per-person evidence.
 The key never reaches the client and the HTTP origin is fixed. See [Qloo](qloo.md).
 
 The sample catalogue is illustrative; capacity/price/diet/access checks must be

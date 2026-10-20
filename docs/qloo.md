@@ -17,7 +17,7 @@ are never exposed through health, API responses or frontend environment variable
 ## Organizer flow
 
 1. Open Cultural discovery on an event. Search a named artist, film, book or place
-   and explicitly select the intended match. Up to eight entity IDs form the query.
+   and explicitly select the intended match. Choose a person to persist up to eight confirmed references to their profile, or explore without saving. Copied team preferences retain these references.
 2. Choose places, artists, films or books. Place requests use the event city with
    `filter.location.radius=0`; cafe and performance/cinema filters use actual Qloo
    category IDs. The matched locality is shown for review. No fallback to a
@@ -28,12 +28,16 @@ are never exposed through health, API responses or frontend environment variable
 4. A place can prefill the activity-library form. Duration, maximum group size and
    per-person cost start blank and must be entered by the organizer. No capacity,
    diet, price or availability is imported from taste data; access stays unknown.
-   The library entry records the Qloo entity and retrieval time in its notes.
+   The library entry records a structured Qloo entity link and retrieval time in its notes.
+5. In plan options, enable **Compare linked venues with Qloo** and refresh. Inspect
+   **Who is represented?** on each option or selected agenda. Direct activity-tag
+   matches and per-person Qloo evidence are displayed separately. A saved revision
+   shows changed/kept arrangements, cost difference and carried-over completed checks.
 
-Discovery selections/results stay in memory while the event is open. Library
-entries persist through the normal store. Saved free-text favourites are visible
+Unassigned exploration selections/results stay in memory while the event is open.
+Per-person references and library entries persist through the normal store. Saved free-text favourites are visible
 to the organizer for reference but are never uploaded automatically. Only explicit
-search text, selected entity IDs and the event city go to Qloo; names, dietary/access
+search text, selected reference/venue IDs and the event city go to Qloo; names, dietary/access
 requirements and private notes do not. Public and participant links cannot call the
 organizer discovery routes.
 
@@ -49,19 +53,41 @@ event plans untouched. Empty search results remain empty, not generated suggesti
 It uses a temporary synthetic workspace and the same authenticated Fastify routes
 as the UI, with at most ten upstream requests. It checks search, Bengaluru cafes,
 cultural venues, office music, changed favourites, cached repeats and unchanged
-saved plans; it removes its workspace afterward. No real participant data is used.
+saved plans, plus two per-person candidate comparisons through the planning route
+and a cached repeat; it removes its workspace afterward. No real participant data is used.
 The normal suite is offline and never spends API quota.
 
 On 2026-10-20 the initial live coverage probe resolved Daft Punk, Spirited Away and
 Arijit Singh, and returned Bengaluru places and music suggestions with source
 contributions. See [verification](verification.md) for integration-run evidence.
 
-The deterministic planner still ranks direct preferences and the activity library.
-Cultural suggestions do not silently alter a plan, bypass hard constraints or
-become booking facts. A combined taste query does not establish fair group
-representation. We do not display raw normalized scores as happiness percentages
-or compare unrelated query scores. Better outcomes versus the baseline remain
-unmeasured and require participant evaluation.
+## Plan comparison policy
+
+`server/plan-with-taste.ts` first enumerates complete feasible plans. Only unlocked,
+linked venues in those plans enter `filter.results.entities`, with the event city
+and strict geography. `server/planning-evidence.ts` uses per-person relative ranks,
+never raw affinity across queries. Within each tied direct-interest/history score,
+plans with the same unlinked/locked arrangements can exchange their baseline
+positions: minimize the worst rank across people/venues, then the mean of each
+person's worst rank. Each person gets equal weight regardless of seed count.
+Unlinked or incompletely assessed plans retain their baseline positions. A failed
+profile keeps all ordinary ordering. Missing responses are unknown, never dislike;
+people without references still contribute stated preferences but not Qloo ranks.
+
+Queries use at most 12 distinct profiles and 20 feasible linked venues, three calls
+at a time. Identical profiles share a request. Exceeding either bound falls back to
+ordinary planning with an explicit message; no profile is silently dropped. No calls
+occur for impossible plans, absent profiles or no eligible linked venue. One
+comparison per workspace can run at a time. Network calls happen outside the store
+lock; the workspace version is checked again before saving options. A concurrent
+change discards the stale result. Comparison never auto-selects a plan.
+
+Taste is a secondary decision aid. It cannot override budget, schedule, group-size,
+diet, explicit exclusions, access checks, locked arrangements, direct preferences
+or repeat feedback. Prices, capacity, reservations and accessibility remain manually
+verified. In-office templates without a linked venue retain ordinary planning;
+artist/movie discovery remains available but is not automatically assembled into
+an office activity. Better team outcomes remain unmeasured.
 
 Primary API contracts:
 

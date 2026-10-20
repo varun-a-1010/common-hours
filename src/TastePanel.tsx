@@ -7,6 +7,7 @@ import {
   type TasteDiscovery,
   type TasteEntity,
   type TasteKind,
+  type TasteSeed,
 } from '../shared/taste';
 import { api } from './api';
 import { Button, ExternalLink, Notice, SectionTitle } from './components';
@@ -22,10 +23,16 @@ export function TastePanel({
   event,
   version,
   review,
+  saveProfile,
+  planning,
+  saving,
 }: {
   event: EventRecord;
   version: number;
   review: (entity: TasteEntity, fetchedAt: string) => void;
+  saveProfile: (memberId: string, seeds: TasteSeed[]) => Promise<boolean>;
+  planning: () => void;
+  saving: boolean;
 }) {
   const [connected, setConnected] = useState<boolean | null>(null);
   const [query, setQuery] = useState('');
@@ -34,10 +41,18 @@ export function TastePanel({
   const [focus, setFocus] = useState<PlaceFocus>('cafes');
   const [matches, setMatches] = useState<TasteEntity[]>([]);
   const [searched, setSearched] = useState(false);
-  const [seeds, setSeeds] = useState<TasteEntity[]>([]);
+  const [explorationSeeds, setSeeds] = useState<TasteSeed[]>([]);
+  const [personId, setPersonId] = useState('');
+  const person = event.members.find((m) => m.id === personId);
+  const seeds = person ? (person.tasteSeeds ?? []) : explorationSeeds;
   const [result, setResult] = useState<TasteDiscovery | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [working, setBusy] = useState(false);
+  const busy = working || saving;
   const [error, setError] = useState('');
+  const seedKey = seeds.map((s) => s.entityId).join(',');
+  useEffect(() => {
+    setResult(null);
+  }, [seedKey]);
   useEffect(() => {
     let active = true;
     api<{ taste: string }>('/api/health')
@@ -64,8 +79,15 @@ export function TastePanel({
   }
   function select(entity: TasteEntity) {
     if (seeds.length >= 8 || seeds.some((s) => s.entityId === entity.entityId)) return;
-    setSeeds([...seeds, entity]);
+    updateSeeds([...seeds, { entityId: entity.entityId, name: entity.name, kind: entity.kind }]);
+  }
+  function updateSeeds(next: TasteSeed[]) {
     setResult(null);
+    if (person)
+      void run(async () => {
+        await saveProfile(person.id, next);
+      });
+    else setSeeds(next);
   }
   return (
     <section className="taste-panel">
@@ -92,6 +114,28 @@ export function TastePanel({
             <p>
               Search sends the title or name you enter to Qloo. Finding suggestions sends the
               selected references and, for places, your event city.
+            </p>
+            <Field label="Whose favourites are these?">
+              <select
+                value={person?.id ?? ''}
+                disabled={busy}
+                onChange={(e) => {
+                  setPersonId(e.target.value);
+                  setResult(null);
+                }}
+              >
+                <option value="">Explore without saving to a person</option>
+                {event.members.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <p className="muted small-text">
+              {person
+                ? `Selections save to ${person.name}’s preferences and carry into the next event when you copy the team.`
+                : 'Choose a person to save their references for per-person venue comparisons. Only choose favourites they have shared.'}
             </p>
             {event.members.some((m) => m.favourites) && (
               <details className="taste-saved">
@@ -194,8 +238,7 @@ export function TastePanel({
                     key={seed.entityId}
                     disabled={busy}
                     onClick={() => {
-                      setSeeds(seeds.filter((s) => s.entityId !== seed.entityId));
-                      setResult(null);
+                      updateSeeds(seeds.filter((s) => s.entityId !== seed.entityId));
                     }}
                     aria-label={`Remove ${seed.name}`}
                   >
@@ -206,8 +249,8 @@ export function TastePanel({
               </div>
             )}
             <p className="muted small-text">
-              Up to eight references. Include different team members’ interests; this combined query
-              does not measure agreement or guarantee fair representation.
+              Up to eight references per person. Discovery explores these references; the plan
+              comparison checks each person separately.
             </p>
           </div>
           <div className="surface">
@@ -265,6 +308,18 @@ export function TastePanel({
                 {busy ? 'Working…' : 'Find suggestions'}
               </Button>
             </div>
+          </div>
+          <div className="taste-next">
+            <div>
+              <h3>3. Bring the evidence into your plan</h3>
+              <p>
+                Review places below and save their practical details to the library. Then compare
+                feasible plans using each person’s confirmed favourites.
+              </p>
+            </div>
+            <Button onClick={planning} disabled={busy}>
+              Compare event plans
+            </Button>
           </div>
           {result && (
             <div aria-live="polite">

@@ -10,6 +10,8 @@ import {
   type Plan,
   type PlanBlock,
 } from '../shared/model';
+import type { MemberTasteComparison } from '../shared/taste';
+import { rankWithTaste } from './planning-evidence';
 
 export function briefFingerprint(brief: Brief, members: Member[]) {
   return createHash('sha256')
@@ -53,6 +55,7 @@ export function buildPlans(
   catalogue: CatalogueItem[],
   history: EventRecord[],
   preserveLocks = false,
+  options: { all?: boolean; comparisons?: MemberTasteComparison[] } = {},
 ): { plans: Plan[]; messages: string[] } {
   const { brief, members } = event;
   if (members.length > brief.headcount)
@@ -170,10 +173,16 @@ export function buildPlans(
         matchedPeople,
         knownPeople: known.length,
         fingerprint: briefFingerprint(brief, members),
+        people: members.map((member) => ({
+          memberId: member.id,
+          interests: a.tags.filter((t) => member.likes.includes(t)),
+        })),
       });
       if (plan.total <= brief.budget) plans.push(plan);
     }
   plans.sort((a, b) => b.score - a.score || a.total - b.total || a.title.localeCompare(b.title));
+  if (options.comparisons) rankWithTaste(plans, members, catalogue, options.comparisons);
+  if (options.all && plans.length) return { plans, messages: [] };
   const chosen: Plan[] = [];
   for (const p of plans) {
     const key = locked.some((b) => b.kind === 'activity')

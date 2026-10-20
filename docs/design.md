@@ -24,3 +24,15 @@ stock photos, fabricated testimonials, or unnecessary animation. Mobile navigati
 collapses into a clear header. Keyboard focus and reduced-motion preferences matter.
 
 Browser/visual QA is reserved for Varun under the fleet instructions.
+
+The comparison additions use compact, expandable evidence rows on plan options and
+the agenda. They separate direct stated interests from inferred cultural affinity.
+Revision rows show exactly what changed and which completed checks carry over;
+blue and green labels supplement text rather than carrying meaning alone.
+
+Implementation patterns reviewed (public source, not end-to-end demo verification):
+[Common Bill revisions](https://github.com/Ananya6Daitkar/common-bill/blob/f115474dbae88b1a9972d3783a0a0f3885ac53a3/lib/revision.ts),
+[Common Ground group ranking](https://github.com/G-ojies/common-ground/blob/20fcb294afb216c342ee15e09ba051d581c0f159/src/lib/group-rank.ts),
+and [Theme Night GM partial revisions](https://github.com/ZNLong2203/Theme-Night-GM/blob/d46abf5638868624da31b1bda93bbf005b4e8711/src/lib/agent/revise.ts).
+Common Hours implements its own constraint-first comparison and revision logic.
+Missing data stays unknown; no arbitrary enjoyment bands or satisfaction percentages.

@@ -11,11 +11,11 @@ last_verified: 2026-10-20
 Verified locally on Node 24.15.0 on 2026-10-20:
 
 - Strict TypeScript, including unused imports and parameters, passes.
-- 32 default Vitest tests pass. The default run explicitly skips two Postgres
+- 42 default Vitest tests pass. The default run explicitly skips two Postgres
   tests; `npm run test:postgres` runs those separately and both passed against a
   fresh, private Unix-socket-only PostgreSQL instance on 2026-10-17. That instance
   was removed; the unchanged database adapter was not retested on 2026-10-20.
-- The Vite production build succeeds. JavaScript is about 299 kB / 90 kB gzip;
+- The Vite production build succeeds. JavaScript is about 306 kB / 92 kB gzip;
   styles and all fonts are served locally.
 - Source formatting and `git diff --check` are checked before delivery.
 - The original 2026-10-17 dependency installation reported zero known audit
@@ -43,7 +43,12 @@ Qloo tests additionally cover the fixed credential destination, redirects disabl
 search-domain validation, strict city and category parameters, cache reuse/expiry,
 source contribution filtering, absent attribution, empty results, missing keys,
 invalid responses, transport/auth/quota failures, organizer and cross-workspace
-access, stale requests, outbound privacy, and unchanged saved plans.
+access, stale requests, outbound privacy, and unchanged saved plans. New planning
+tests exercise per-person balanced ranking, direct-interest priority, unknown and
+unlinked baseline positions, missing/failed profiles, candidate allowlisting,
+zero/tied scores, bounded requests, identical-profile reuse, feasible-plan filtering,
+profile persistence and copying, private projections, locked quote/check preservation,
+revision receipts, one in-flight comparison and stale-result rejection.
 
 Initial live coverage probes on 2026-10-20 returned HTTP 200 for three reference
 searches, Bengaluru and New York place insights, and office music insights. These
@@ -70,8 +75,8 @@ still require review. No price, capacity, reservation or access claim was verifi
 - Browser/visual QA was not performed, per the fleet instructions. Varun reviews
   the interface. No screenshot, headless-browser test or UI rendering was used.
 - Qloo discovery works when the server has a key. Live coverage is sampled, not
-  exhaustive. The deterministic planner still ranks direct preferences; improvement
-  in actual team outcomes has not been established.
+  exhaustive. Individual Qloo evidence can now break ties after direct preferences
+  and history; improvement in actual team outcomes has not been established.
 - Starter activities, people and history in the sample workspace are illustrative.
   Provider facts, actual prices, accessibility and availability require confirmation.
 - The Deltabase-compatible adapter was verified with real isolated PostgreSQL, not
@@ -97,3 +102,17 @@ still require review. No price, capacity, reservation or access claim was verifi
    or artists. Review the source contributions and matched locality. Review a place
    for the library and supply your own activity details and cost estimate. Confirm
    that discovering suggestions alone does not change a selected plan or checks.
+
+8. Select a person in Cultural discovery, save their confirmed references, and repeat
+   for another person. Refresh the page to check persistence. Review two places and
+   enter activity duration/capacity/cost; these are your estimates, not Qloo facts.
+9. On plan options, enable **Compare linked venues with Qloo**, refresh, and expand
+   **Who is represented?**. Check direct-interest matches, missing profiles and venue
+   query receipts. An unlinked office template retains ordinary ranking.
+10. Choose a plan, lock its meal, confirm meal checks and replace the activity.
+    Compare changed/kept blocks, quoted cost and carried-over checks before choosing.
+    The selected agenda retains the revision summary.
+
+The extended live runner covers the new candidate-comparison contract as well as
+discovery, within its existing ten-call budget. The earlier retained live receipt
+predates this extension; a new run is required before claiming live comparison proof.

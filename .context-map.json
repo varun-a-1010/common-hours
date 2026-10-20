@@ -34,12 +34,14 @@
         "server/store.ts",
         "server/planner.ts",
         "server/data.ts",
-        "shared/validation.ts"
+        "shared/validation.ts",
+        "server/plan-with-taste.ts",
+        "shared/revision.ts"
       ]
     },
     "server/planner.ts": {
       "purpose": "Constraint-first selection, history, scheduling, costs and locked replanning",
-      "depends_on": ["shared/model.ts"]
+      "depends_on": ["shared/model.ts", "server/planning-evidence.ts"]
     },
     "server/store.ts": {
       "purpose": "Private atomic file storage and dedicated Deltabase Postgres adapter",
@@ -56,6 +58,22 @@
     "scripts/test-qloo-live.ts": {
       "purpose": "Opt-in bounded live integration check using temporary synthetic workspaces",
       "depends_on": ["server/app.ts", "server/taste.ts", "server/store.ts"]
+    },
+    "server/planning-evidence.ts": {
+      "purpose": "Conservative per-person rank tie-breaking, missing evidence and plan receipts",
+      "depends_on": ["shared/model.ts", "shared/taste.ts"]
+    },
+    "server/plan-with-taste.ts": {
+      "purpose": "Bounded Qloo comparison of feasible venues outside storage transactions",
+      "depends_on": ["server/planner.ts", "server/taste.ts"]
+    },
+    "shared/revision.ts": {
+      "purpose": "Before/after arrangement and cost comparison",
+      "depends_on": ["shared/model.ts"]
+    },
+    "src/PlanEvidence.tsx": {
+      "purpose": "Per-person evidence and revision explanations",
+      "depends_on": ["shared/model.ts", "shared/revision.ts"]
     }
   }
 }
