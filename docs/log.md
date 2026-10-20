@@ -12,6 +12,9 @@
 - Passed 42 default tests, formatting, strict TypeScript and production build.
   Extended the opt-in live runner to exercise two individual profiles without
   exceeding ten upstream calls. Browser/visual QA remains reserved for Varun.
+- Passed the extended live test at `f57a3aa`: nine HTTP 200 calls, two per-person
+  comparisons against a shared venue set, cached repeat and no automatic plan
+  selection. Evidence: `docs/evidence/qloo-planning-live-2026-10-20.json`.
 
 - Fixed development workspace creation being rejected by the origin check: the
   Vite proxy now preserves the browser-facing Host. Added three real HTTP proxy

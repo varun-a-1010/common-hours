@@ -59,7 +59,9 @@ The normal suite is offline and never spends API quota.
 
 On 2026-10-20 the initial live coverage probe resolved Daft Punk, Spirited Away and
 Arijit Singh, and returned Bengaluru places and music suggestions with source
-contributions. See [verification](verification.md) for integration-run evidence.
+contributions. The extended live run at `f57a3aa` also assessed two independent
+profiles against the same two venue IDs with nine successful requests overall.
+See [verification](verification.md) for both retained integration receipts.
 
 ## Plan comparison policy
 

@@ -113,6 +113,12 @@ still require review. No price, capacity, reservation or access claim was verifi
     Compare changed/kept blocks, quoted cost and carried-over checks before choosing.
     The selected agenda retains the revision summary.
 
-The extended live runner covers the new candidate-comparison contract as well as
-discovery, within its existing ten-call budget. The earlier retained live receipt
-predates this extension; a new run is required before claiming live comparison proof.
+The extended live runner passed on 2026-10-20 at code SHA `f57a3aa`.
+[Planning evidence](evidence/qloo-planning-live-2026-10-20.json) records nine HTTP 200
+requests (three searches, four discovery queries, two individual candidate comparisons),
+238–3274 ms upstream latency, and cache reuse for both discovery and comparison.
+Two synthetic profiles were assessed against the same two real Bengaluru venue IDs;
+Linto Coffee ranked first for both in this sampled comparison. The test supplied
+explicitly synthetic activity prices/capacities, kept selection manual, and removed
+its temporary store. This proves API integration, not better event outcomes or
+real-world venue suitability. No browser/visual QA was performed.
