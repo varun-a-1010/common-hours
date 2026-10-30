@@ -6,3 +6,4 @@
 - [Qloo](qloo.md): live discovery, selected favourites, source evidence and planner boundaries.
 - [Verification](verification.md): meaningful checks and remaining limitations.
 - [Change log](log.md).
+- [Devpost copy](devpost.md): submission text.

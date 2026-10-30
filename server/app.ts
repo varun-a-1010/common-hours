@@ -47,7 +47,7 @@ export async function buildApp(
 ) {
   const taste = options.taste ?? tasteProvider;
   const tasteRuns = new Set<string>();
-  const app = Fastify({ logger: false, bodyLimit: 64 * 1024, trustProxy: false });
+  const app = Fastify({ logger: false, bodyLimit: 64 * 1024, trustProxy: '127.0.0.1' });
   await app.register(cookie);
   await app.register(rateLimit, { max: 180, timeWindow: '1 minute' });
   app.addHook('onRequest', async (request, reply) => {

@@ -1,5 +1,7 @@
 # Common Hours
 
+**Live demo:** https://common-hours.slate-app.online
+
 A workplace event planner for thoughtful outings and activities inside the office.
 Works without API keys: explicit preferences, sample/custom activities, event plans,
 locked-arrangement replanning, logistics, share links, feedback and event history.
@@ -61,3 +63,7 @@ with at most ten API requests, prints sanitized evidence and removes its test da
 Normal tests do not call Qloo. [Integration details and boundaries](docs/qloo.md).
 
 See [docs/index.md](docs/index.md) for scope, access controls and verification.
+
+## License
+
+[MIT](LICENSE)

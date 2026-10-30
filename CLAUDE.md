@@ -1,9 +1,9 @@
 # Common Hours
 
-An independent workplace event planner. This is a new repository; never change
-TripRescue or any other submitted Devpost artifact while working here.
+An independent workplace event planner. Never change another app from this repo.
 
-- Work on `main`. No remote is configured initially.
+- Work on `main`. Ship with `~/code/dev-env/bin/qloo-ship common-hours`; the standard is
+  `~/code/qloo-submissions.md`.
 - Follow `~/code/AGENTS.md`, especially no unsolicited browser or visual QA.
 - `npm run check` runs type checking, meaningful domain/API tests, and a production build.
 - Default storage is a private local file store. `DATABASE_URL` supports a dedicated

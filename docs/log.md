@@ -1,5 +1,10 @@
 # Change log
 
+## 2026-10-31
+
+- Trusted the local nginx proxy so rate limits apply per client. Deployed to Motif at
+  common-hours.slate-app.online and published the repository under MIT.
+
 ## 2026-10-20
 
 - Improved the recurring-event workflow after examining Common Bill, Common Ground
