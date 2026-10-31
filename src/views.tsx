@@ -313,8 +313,7 @@ export function PlanOptions({
           </Button>
         }
       >
-        Based on stated interests, practical requirements and recent events. Costs include a 10%
-        reserve.
+        Built from stated interests, requirements and recent events. Costs include a 10% reserve.
       </SectionTitle>
       <div className="planning-taste">
         <label className="check-label">
@@ -327,16 +326,15 @@ export function PlanOptions({
           Compare linked venues with Qloo
         </label>
         <p>
-          {profiles} of {event.members.length} people have confirmed favourites. Qloo receives
-          selected reference IDs, venue IDs and city. Names and private requirements stay here.
+          {profiles} of {event.members.length} have confirmed favourites. Names and private
+          requirements stay here.
         </p>
         <Button variant="plain" onClick={discover} disabled={busy}>
           Set up favourites & venues <ArrowRight size={15} />
         </Button>
       </div>
       <Notice tone="warm">
-        The starter library contains example activities and estimated prices. Add actual venues and
-        quotes before finalizing arrangements.
+        Activities and prices here are examples. Add real venues and quotes before you finalize.
       </Notice>
       {event.messages.length > 0 && (
         <div className="planning-messages" role="status">
@@ -367,26 +365,21 @@ export function PlanOptions({
           <article className={`plan-card plan-color-${index}`} key={plan.id}>
             <div className="plan-cover">
               <span className="plan-number">Option {index + 1}</span>
-              <div className="plan-illustration" aria-hidden="true">
-                {plan.blocks[0].itemId.includes('game') ||
-                plan.blocks[0].itemId.includes('escape') ? (
-                  <div className="paper-game">
-                    <i />
-                    <i />
-                    <i />
-                    <i />
-                  </div>
-                ) : (
-                  <div className="paper-objects">
-                    <i />
-                    <i />
-                    <i />
-                  </div>
-                )}
-              </div>
               <h3>{plan.title}</h3>
             </div>
             <div className="plan-content">
+              <div className="plan-price">
+                <strong>{money(plan.total)}</strong>
+                <span>{money(Math.ceil(plan.total / event.brief.headcount))} / person</span>
+              </div>
+              <Button
+                variant={index === 0 ? 'primary' : 'secondary'}
+                onClick={() => choose(plan)}
+                disabled={busy}
+              >
+                Choose this plan
+                <ArrowRight size={16} />
+              </Button>
               <div className="plan-stops">
                 {plan.blocks.map((b) => (
                   <div key={b.id}>
@@ -406,10 +399,6 @@ export function PlanOptions({
                   </li>
                 ))}
               </ul>
-              <div className="plan-price">
-                <strong>{money(plan.total)}</strong>
-                <span>{money(Math.ceil(plan.total / event.brief.headcount))} / person</span>
-              </div>
               {event.selected && (
                 <RevisionView
                   preview
@@ -436,14 +425,6 @@ export function PlanOptions({
                   ))}
                 </ul>
               </details>
-              <Button
-                variant={index === 0 ? 'primary' : 'secondary'}
-                onClick={() => choose(plan)}
-                disabled={busy}
-              >
-                Choose this plan
-                <ArrowRight size={16} />
-              </Button>
             </div>
           </article>
         ))}

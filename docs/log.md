@@ -2,6 +2,8 @@
 
 ## 2026-10-31
 
+- Tightened the plans view. Price and Choose this plan now sit at the top of each card, the
+  decorative covers are gone, and the spacing and copy above the plans are shorter.
 - Trusted the local nginx proxy so rate limits apply per client. Deployed to Motif at
   common-hours.slate-app.online and published the repository under MIT.
 
