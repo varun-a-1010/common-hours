@@ -2,6 +2,8 @@
 
 ## 2026-10-31
 
+- Added a Gemini step: after plans are built, Gemini writes one plain line per plan on why it could
+  suit the team, from the brief and plan details only. If it fails or is slow, plans are unchanged.
 - Tightened the plans view. Price and Choose this plan now sit at the top of each card, the
   decorative covers are gone, and the spacing and copy above the plans are shorter.
 - Trusted the local nginx proxy so rate limits apply per client. Deployed to Motif at

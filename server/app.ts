@@ -19,6 +19,7 @@ import { briefFingerprint, makeChecks, planProblems, recost } from './planner';
 import { planWithTaste } from './plan-with-taste';
 import { comparePlans } from '../shared/revision';
 import { tasteProvider, TasteError, type TasteProvider } from './taste';
+import type { Explainer } from './explain';
 import { tasteKinds } from '../shared/taste';
 
 class HttpError extends Error {
@@ -43,6 +44,7 @@ export async function buildApp(
     origin?: string;
     production?: boolean;
     taste?: TasteProvider;
+    explain?: Explainer;
   } = {},
 ) {
   const taste = options.taste ?? tasteProvider;
@@ -274,6 +276,8 @@ export async function buildApp(
         // No network request under the store lock. The second version check in
         // mutate rejects results if preferences, quotes, locks or the library changed.
         const result = await planWithTaste(event, workspace.catalogue, workspace.events, taste);
+        if (options.explain)
+          result.plans = await options.explain(event, result.plans).catch(() => result.plans);
         return await mutate(request, (w) => {
           const current = findEvent(w, event.id);
           current.useTaste = event.useTaste;

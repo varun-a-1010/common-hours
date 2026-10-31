@@ -3,6 +3,7 @@ import { loadEnvFile } from 'node:process';
 import { FileStore, PostgresStore } from './store';
 import { buildApp } from './app';
 import { createTasteProvider } from './taste';
+import { createExplainer } from './explain';
 
 try {
   loadEnvFile();
@@ -15,6 +16,15 @@ const store = process.env.DATABASE_URL
 const production = process.env.NODE_ENV === 'production';
 const app = await buildApp(store, {
   taste: createTasteProvider({ apiKey: process.env.QLOO_API_KEY }),
+  explain: createExplainer({
+    project: process.env.VERTEX_LLM_PROJECT_ID,
+    serviceAccount: process.env.VERTEX_LLM_SERVICE_ACCOUNT,
+    location: process.env.VERTEX_LLM_REGION,
+    backup: {
+      project: process.env.VERTEX_LLM_BACKUP_PROJECT_ID,
+      serviceAccount: process.env.VERTEX_LLM_BACKUP_SERVICE_ACCOUNT,
+    },
+  }),
   production,
   origin: process.env.APP_ORIGIN,
   staticRoot: production ? resolve('dist/client') : undefined,
